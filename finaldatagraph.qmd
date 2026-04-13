@@ -1,0 +1,164 @@
+---
+title: "FIFA 2022 Scoring Efficiency Analysis"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+# libraries
+library(tidyverse)
+library(janitor)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(forcats)
+
+# load data
+df <- read_csv("/Users/xuzibo/Desktop/Math244/final/player_stats.csv") %>%
+  clean_names()
+
+# preview 
+# glimpse(df)
+```
+
+\
+- goals: total goals scored\
+- xg: expected goals\
+- xg_diff: goals - xg (scoring efficiency)\
+- age: player age\
+- position: player position (FW, MF, DF, GK)\
+- team: national team
+
+\## Variables\
+\
+Outcome Variable:\
+- xg_diff (measures scoring efficiency)\
+\
+Explanatory Variables:\
+- position\
+- age\
+- team
+
+```{r}
+# 3. Data Cleaning + New Variables
+# create efficiency variable
+# Created a new variable `xg_diff = goals - xg`
+# Filtered players with no playing time (if applicable)
+
+
+df <- df %>%
+  mutate(
+    xg_diff = goals - xg,
+    goals_per90 = goals / minutes * 90,
+    xg_per90 = xg / minutes * 90,
+    efficiency_per90 = goals_per90 - xg_per90
+  ) %>%
+  filter(minutes > 0)
+```
+
+```{r}
+# FIGURE 1 — Distribution of Efficiency
+ggplot(df, aes(x = xg_diff)) +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Distribution of Scoring Efficiency (Goals - xG)",
+    x = "xG Difference",
+    y = "Number of Players"
+  ) +
+  theme_minimal()
+```
+
+This histogram shows that most players cluster around zero, meaning they perform close to their expected goals (xG). There is a slight right tail, indicating that a smaller number of players significantly outperform their xG. Overall, extreme overperformers and underperformers are relatively rare.
+
+```{r}
+# Efficiency by Position (BOXPLOT)
+ggplot(df, aes(x = position, y = xg_diff, fill = position)) +
+  geom_boxplot() +
+  labs(
+    title = "Scoring Efficiency by Position",
+    x = "Position",
+    y = "Goals - xG"
+  ) +
+  theme_minimal()
+```
+
+This boxplot shows that forwards tend to have a wider spread and slightly higher median efficiency compared to other positions. Defenders and midfielders are generally centered around zero, suggesting they perform closer to expectations. Goalkeepers show no variation since they rarely score, so their efficiency remains near zero.
+
+```{r}
+#Age vs Efficiency
+ggplot(df, aes(x = age, y = xg_diff)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Age vs Scoring Efficiency",
+    x = "Age",
+    y = "Goals - xG"
+  ) +
+  theme_minimal()
+```
+
+This scatterplot shows no strong relationship between age and scoring efficiency, as points are widely scattered across all ages. Both younger and older players can either overperform or underperform their xG. This suggests that age is not a strong predictor of scoring efficiency in this dataset.
+
+```{r}
+# Top 10 Most Efficient Players
+top10 <- df %>%
+  arrange(desc(xg_diff)) %>%
+  slice_head(n = 10)
+
+ggplot(top10, aes(x = reorder(player, xg_diff), y = xg_diff)) +
+  geom_col(fill = "darkgreen") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Most Efficient Players",
+    x = "Player",
+    y = "Goals - xG"
+  ) +
+  theme_minimal()
+```
+
+This bar chart highlights the players who most exceeded their expected goals during the tournament. Kylian Mbappé stands out as the most efficient scorer, significantly outperforming his xG compared to others. The remaining players also show strong positive efficiency, indicating exceptional finishing performance.
+
+```{r}
+# Team-Level Efficiency
+
+team_eff <- df %>%
+  group_by(team) %>%
+  summarize(avg_eff = mean(xg_diff, na.rm = TRUE)) %>%
+  arrange(desc(avg_eff)) %>%
+  slice_head(n = 10)
+
+ggplot(team_eff, aes(x = reorder(team, avg_eff), y = avg_eff)) +
+  geom_col(fill = "purple") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Teams by Average Scoring Efficiency",
+    x = "Team",
+    y = "Average Goals - xG"
+  ) +
+  theme_minimal()
+
+```
+
+This bar chart highlights the players who most exceeded their expected goals during the tournament. Kylian Mbappé stands out as the most efficient scorer, significantly outperforming his xG compared to others. The remaining players also show strong positive efficiency, indicating exceptional finishing performance.
+
+```{r}
+df %>% select(goals, xg, xg_diff, age) %>% 
+  summary()
+install.packages("skimr")
+library(skimr)
+skim(df)
+```
+
+```{r}
+model <- lm(xg_diff ~ age + position, data = df)
+summary(model)
+```
