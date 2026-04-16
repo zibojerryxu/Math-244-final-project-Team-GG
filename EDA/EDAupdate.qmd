@@ -2,6 +2,10 @@
 title: "FIFA 2022 Scoring Efficiency Analysis"
 format: html
 editor: visual
+execute:
+  echo: true
+  warning: false
+  message: false
 ---
 
 # Exploratory Data Analysis
@@ -17,7 +21,10 @@ library(forcats)
 library(skimr)
 
 # load data
-df <- read_csv("player_stats.csv") %>%
+df <- read_csv(
+  "/Users/xuzibo/Desktop/Math244/final/Math-244-final-project-Team-GG/data/player_stats.csv",
+  show_col_types = FALSE
+) %>%
   clean_names()
 
 # preview 
@@ -52,22 +59,19 @@ We would expect forwards to show high variance while other positions to cluster 
 ## Data Cleaning and Transformation
 
 ```{r}
-# Data cleaning
+# Clean data and create key variables
 df <- df %>%
   mutate(
-    # outcome variable
-    xg_diff = goals - xg,
-    efficiency_per90 = goals_per90 - xg_per90,
-    # non-penalty
-    np_xg_diff = goals_pens - npxg,
+    xg_diff = goals - xg,                          # scoring efficiency
+    efficiency_per90 = goals_per90 - xg_per90,     # per 90 efficiency
+    np_xg_diff = goals_pens - npxg,                # non-penalty efficiency
     np_efficiency_per90 = (goals_pens / minutes_90s) - (npxg / minutes_90s),
-    
-    age_years = as.integer(str_extract(age, "^[0-9]+")),
-    is_overperformer = if_else(xg_diff > 0, 1L, 0L),
+    age_years = as.integer(str_extract(age, "^[0-9]+")),  # extract numeric age
+    is_overperformer = if_else(xg_diff > 0, 1L, 0L),      # binary indicator
     position = factor(position, levels = c("FW", "MF", "DF", "GK"))
   ) %>%
-  filter(minutes_90s >= 1) %>%# drop players with minimal playing time
-  drop_na(xg, goals, position, age_years)
+  filter(minutes_90s >= 1) %>%                    # remove low playing time
+  drop_na(xg, goals, position, age_years)         # drop missing values
 
 ```
 
@@ -84,8 +88,8 @@ The raw dataset contained 680 player observations from the 2022 FIFA World Cup.
 ```{r}
 # Distribution of Efficiency
 ggplot(df, aes(x = xg_diff)) +
-  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) + # histogram
+  geom_vline(xintercept = 0, linetype = "dashed") +            #break even line
   labs(
     title = "Distribution of Scoring Efficiency (Goals - xG)",
     x = "xG Difference",
@@ -94,7 +98,7 @@ ggplot(df, aes(x = xg_diff)) +
   theme_minimal()
 ```
 
-This histogram shows that most players cluster around zero, meaning they perform close to their expected goals (xG). There is a slight right tail, indicating that a smaller number of players significantly outperform their xG. Overall, extreme overperformers and underperformers are relatively rare.
+The distribution shows that most players cluster around zero, indicating that players generally perform close to their expected goals. There is a slight right tail, indicating that a smaller number of players significantly outperform their xG. Overall, extreme overperformers and underperformers are relatively rare.
 
 ### Figure 2
 
@@ -105,7 +109,7 @@ ggplot(df, aes(x = position, y = xg_diff, fill = position)) +
   labs(
     title = "Scoring Efficiency by Position",
     x = "Position",
-    y = "Goals - xG"
+    y = "Scoring Efficiency (Goals − xG)"
   ) +
   theme_minimal()
 ```
@@ -115,72 +119,93 @@ This boxplot shows that forwards tend to have a wider spread and slightly higher
 ### Figure 3
 
 ```{r}
-# Total Goals vs Tota xG by Position Plot
+# Total Goals vs Total xG by Position Plot
 df |>
   group_by(position) |>
-  summarise(Total_Goals = sum(goals),
-            Total_xG    = sum(xg, na.rm = TRUE)) |>
-  pivot_longer(cols = c(Total_Goals, Total_xG),
-               names_to = "metric", values_to = "value") |>
+  summarise(
+    Total_Goals = sum(goals),                 # total goals by position
+    Total_xG    = sum(xg, na.rm = TRUE)       # total expected goals
+  ) |>
+  pivot_longer(
+    cols = c(Total_Goals, Total_xG),          # reshape for plotting
+    names_to = "metric",
+    values_to = "value"
+  ) |>
   ggplot(aes(x = position, y = value, fill = metric)) +
-  geom_col(position = "dodge", width = 0.6) +
-  scale_fill_manual(values = c("Total_Goals" = "#3b82f6",
-                               "Total_xG"    = "#94a3b8")) +
-  labs(title = "Total Goals vs. Total xG by Position",
-       x = NULL, y = "Total", fill = NULL) +
+  geom_col(position = "dodge", width = 0.6) + # side-by-side bars
+  scale_fill_manual(values = c(
+    "Total_Goals" = "#3b82f6",
+    "Total_xG"    = "#94a3b8"
+  )) +
+  labs(
+    title = "Total Goals vs. Total xG by Position",
+    x = NULL,
+    y = "Total",
+    fill = NULL
+  ) +
   theme_minimal()
 ```
 
-This Bar Chart reveals that midfielders and defenders actually underperform their xG while forwards overperform. We also notice that both goals and xg is nonexistent for goalkeepers, indicating that the GK position is irrelevant to our interest of study. These findings suggests that position is a meaningful predictor of xg_diff.
+This Bar Chart reveals that midfielders and defenders actually underperform their xG while forwards overperform. We also notice that both goals and xg is nonexistent for goalkeepers, indicating that the GK position is irrelevant to our interest of study. These findings suggest that position is a meaningful predictor of xg_diff.
 
 ### Figure 4
 
 ```{r}
 #Age vs Efficiency
-ggplot(df, aes(x = age, y = xg_diff)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm", se = FALSE, color = "red") +
-  labs(
-    title = "Age vs Scoring Efficiency",
-    x = "Age",
-    y = "Goals - xG"
-  ) +
-  theme_minimal()
+
+# Plot age against scoring efficiency
+ggplot(df, aes(x = age_years, y = xg_diff)) +
+  geom_point(alpha = 0.5) +                              # scatterplot points
+  geom_smooth(method = "lm", se = FALSE, color = "red", formula = y ~ x) + # regression line
+  labs(title = "Age vs Scoring Efficiency",
+       x = "Age",
+       y = "Scoring Efficiency (Goals − xG)") +
+  scale_x_continuous(breaks = seq(15, 45, by = 5)) +    # x-axis labels
+  theme_minimal()                                       # clean theme
 ```
 
-This scatterplot shows no strong relationship between age and scoring efficiency, as points are widely scattered across all ages. Both younger and older players can either overperform or underperform their xG. This suggests that age is not a strong predictor of scoring efficiency in this dataset.
+This suggests that age is not a strong predictor of scoring efficiency in this dataset, as points are widely scattered across all ages. Both younger and older players can either overperform or underperform their xG. This suggests that age is not a strong predictor of scoring efficiency in this dataset.
 
 ### Figure 5
 
 ```{r}
 # Top 5 over and under performers plot
-top5_over  <- df |> slice_max(order_by = xg_diff, n = 5) |> mutate(group = "Overperformer")
-top5_under <- df |> slice_min(order_by = xg_diff, n = 5) |> mutate(group = "Underperformer")
+top5_over  <- df |> 
+  slice_max(order_by = xg_diff, n = 5) |>        # highest xg_diff
+  mutate(group = "Overperformer")
+
+top5_under <- df |> 
+  slice_min(order_by = xg_diff, n = 5) |>        # lowest xg_diff
+  mutate(group = "Underperformer")
 
 bind_rows(top5_over, top5_under) |>
   mutate(
-    label  = paste0(player, " (", team, ")"),
-    label  = fct_reorder(label, xg_diff)
+    label = paste0(player, " (", team, ")"),     # player label
+    label = fct_reorder(label, xg_diff)          # order by performance
   ) |>
   ggplot(aes(x = xg_diff, y = label, fill = group)) +
-  geom_col(width = 0.65) +
-  geom_vline(xintercept = 0, linewidth = 0.8, color = "grey30") +
-  geom_text(aes(label = round(xg_diff, 1),
-                hjust = if_else(xg_diff > 0, -0.2, 1.2)),
-            size = 3.5, fontface = "bold") +
-  scale_fill_manual(values = c("Overperformer" = "#22c55e",
-                               "Underperformer" = "#ef4444")) +
+  geom_col(width = 0.65) +                       # horizontal bars
+  geom_vline(xintercept = 0, linewidth = 0.8, color = "grey30") +  # break-even
+  geom_text(
+    aes(label = round(xg_diff, 1),
+        hjust = if_else(xg_diff > 0, -0.2, 1.2)), # position labels
+    size = 3.5, fontface = "bold"
+  ) +
+  scale_fill_manual(values = c(
+    "Overperformer" = "#22c55e",
+    "Underperformer" = "#ef4444"
+  )) +
   labs(
-    title    = "Top 5 Over- and Underperformers",
+    title = "Top 5 Over- and Underperformers",
     subtitle = "xg_diff = goals − expected goals  |  ≥1 full 90-min played",
-    x        = "xg_diff (goals − xG)",
-    y        = NULL,
-    fill     = NULL
+    x = "xg_diff (goals − xG)",
+    y = NULL,
+    fill = NULL
   ) +
   theme_minimal(base_size = 13) +
   theme(
-    legend.position  = "top",
-    plot.title       = element_text(face = "bold"),
+    legend.position = "top",
+    plot.title = element_text(face = "bold"),
     panel.grid.major.y = element_blank()
   )
 ```
@@ -192,27 +217,41 @@ This horizontal bar chart highlights the players who differentiated the greatest
 ```{r}
 # Expected Goals vs Actual Goals Plot
 df |>
-  filter(!is.na(xg)) |>
+  filter(!is.na(xg)) |>                            # remove missing xG
   ggplot(aes(x = xg, y = goals, color = position)) +
+  
+  # 45-degree reference line (goals = xG)
   geom_abline(slope = 1, intercept = 0,
               linetype = "dashed", color = "grey40", linewidth = 0.9) +
+  
+  # points sized by playing time
   geom_point(aes(size = minutes_90s), alpha = 0.6) +
+  
+  # label players with large over/underperformance
   geom_text(
     data = . %>% filter(abs(goals - xg) > 1.5),
     aes(label = player),
     size = 3, vjust = -0.7, show.legend = FALSE
   ) +
+  
+  # manual colors by position
   scale_color_manual(values = c(
     "FW" = "#ef4444", "MF" = "#3b82f6",
     "DF" = "#22c55e", "GK" = "#f59e0b"
   )) +
+  
+  # control point size range
   scale_size_continuous(range = c(1.5, 6), guide = "none") +
+  
+  # labels
   labs(
-    title    = "Expected Goals vs. Actual Goals",
-    subtitle = "Points above the dashed line scored more than their xG predicted",
-    x = "Expected Goals (xG)", y = "Actual Goals",
+    title = "Expected Goals vs. Actual Goals",
+    subtitle = "Points above the line scored more than expected",
+    x = "Expected Goals (xG)",
+    y = "Actual Goals",
     color = "Position"
   ) +
+  
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"))
 ```
@@ -224,16 +263,16 @@ This xG vs Actual goals scatter plot provides a broader view of player efficienc
 ```{r}
 # Top 10 Most Efficient Players
 top10 <- df %>%
-  arrange(desc(xg_diff)) %>%
-  slice_head(n = 10)
+  arrange(desc(xg_diff)) %>%        # sort by efficiency (descending)
+  slice_head(n = 10)               # keep top 10
 
 ggplot(top10, aes(x = reorder(player, xg_diff), y = xg_diff)) +
-  geom_col(fill = "darkgreen") +
-  coord_flip() +
+  geom_col(fill = "darkgreen") +   # bar chart
+  coord_flip() +                   # horizontal layout
   labs(
     title = "Top 10 Most Efficient Players",
     x = "Player",
-    y = "Goals - xG"
+    y = "Scoring Efficiency (Goals − xG)"
   ) +
   theme_minimal()
 ```
@@ -247,13 +286,13 @@ This bar chart highlights the players who most exceeded their expected goals dur
 
 team_eff <- df %>%
   group_by(team) %>%
-  summarize(avg_eff = mean(xg_diff, na.rm = TRUE)) %>%
-  arrange(desc(avg_eff)) %>%
-  slice_head(n = 10)
+  summarize(avg_eff = mean(xg_diff, na.rm = TRUE)) %>%  # average efficiency
+  arrange(desc(avg_eff)) %>%                            # sort descending
+  slice_head(n = 10)                                    # top 10 teams
 
 ggplot(team_eff, aes(x = reorder(team, avg_eff), y = avg_eff)) +
-  geom_col(fill = "purple") +
-  coord_flip() +
+  geom_col(fill = "purple") +                           # bar chart
+  coord_flip() +                                        # horizontal layout
   labs(
     title = "Top 10 Teams by Average Scoring Efficiency",
     x = "Team",
@@ -263,17 +302,25 @@ ggplot(team_eff, aes(x = reorder(team, avg_eff), y = avg_eff)) +
 
 ```
 
-This bar chart highlights the players who most exceeded their expected goals during the tournament. Kylian Mbappé stands out as the most efficient scorer, significantly outperforming his xG compared to others. The remaining players also show strong positive efficiency, indicating exceptional finishing performance.
+This bar chart shows the top 10 teams ranked by average scoring efficiency (goals − xG). Teams with higher values tend to convert chances more effectively than expected, indicating strong finishing performance. Differences across teams may reflect attacking style, player quality, or small-sample variation in tournament play. Overall, this suggests that efficiency is not only a player-level phenomenon but can also vary systematically across teams.
 
 ### Data Summary
 
 ```{r}
-df %>% select(goals, xg, xg_diff, age) %>% 
+# Summary statistics for key variables
+df %>% 
+  select(goals, xg, xg_diff, age) %>% 
   summary()
+
+# Detailed dataset overview (distributions, missing values, etc.)
 skim(df)
+
 ```
 
 ```{r}
-model <- lm(xg_diff ~ age + position, data = df)
+# Regression: scoring efficiency on age and position
+model <- lm(xg_diff ~ age_years + position, data = df)
+
+# View regression results
 summary(model)
 ```
