@@ -6,9 +6,8 @@ website:
   title: "M244 Project"
   navbar:
     left:
-      - href: index.qmd
+      - href: EDAupdate.qmd
         text: Home
-      - notes.qmd
 
 format:
   html:
