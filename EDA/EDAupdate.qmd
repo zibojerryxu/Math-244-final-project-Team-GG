@@ -318,9 +318,22 @@ skim(df)
 ```
 
 ```{r}
-# Regression: scoring efficiency on age and position
-model <- lm(xg_diff ~ age_years + position, data = df)
+# Best model: non-penalty scoring efficiency with opportunity controls
 
-# View regression results
-summary(model)
+model_best <- lm(
+  np_xg_diff ~ age_years + position + minutes_90s + shots + xg_assist_per90,
+  data = df %>%
+    filter(position != "GK") %>%
+    drop_na(np_xg_diff, age_years, position, minutes_90s, shots, xg_assist_per90)
+)
+
+summary(model_best)
 ```
+
+Our best model predicts non-penalty scoring efficiency using age, position, playing time, shot volume, and playmaking context.
+
+`np_xg_diff = β0 + β1(age_years) + β2(position) + β3(minutes_90s) + β4(shots) + β5(xg_assist_per90) + ε`
+
+We use `np_xg_diff` instead of raw `xg_diff` because penalties can distort scoring efficiency. This model also removes goalkeepers because they are not meaningful for scoring analysis. `minutes_90s` controls for playing time, while `shots` controls for scoring opportunity. `xg_assist_per90` adds attacking context because creative players may be involved in dangerous chances even if they are not always the final shooter.
+
+This model is stronger than the original age-and-position model because it controls for both opportunity and role. A player with high efficiency after controlling for shots and minutes is more likely to be a true overperformer rather than someone benefiting from small sample randomness.
