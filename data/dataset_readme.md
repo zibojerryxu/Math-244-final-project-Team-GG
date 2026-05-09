@@ -1,19 +1,19 @@
 This dataset provides match outcomes, team statistics, and player performance data from the 2022 FIFA World Cup, used for analysis and visualization in this project.
 ### Outcome Variable
 - `xg_diff`: subtracting a player's xG from their actual goals. A positive value indicates overperformance while a negative value indicates underperformance
-- `efficiency_per90`: as the per-90 rate version of this difference which adjusts for playing time differences across players
-- `is_overperforme`: taking value 1 if a player scored more than their xG and 0 otherwise
-- `np_xg_diff`: was additionally created to remove the distorting effects of penalties
+
 
 
 ### Main Explanatory Variables
-- `goals`: total goals scored
-- `xg`: expected goals
 - `age_years`: player age
 - `position`: player position (FW, MF, DF, GK)
 - `minutes_90s`: measurement of playing time- team: national team
 - `xg_assist_per90`: playmaking context
-- `team`: national team
+- `shots`: total number of shot attempts a player has made throughout the tournament
+- `shots_on_target`: total number of shot attempts by a player that was within the goal frame
+- `goals_per_shot`: the ratio of goals scored to total shots taken
+- `average_shot_distance`: the average shot distance of all the shots taken by a single player 
+- `np_xg_per_shot`: describes the quality of the shot by measuring the non-penalty expected goal per shot
 
 ---
 
