@@ -14,6 +14,43 @@ A positive `xg_diff` means a player scored more goals than expected, while a neg
 
 The goal of this project is to understand whether player characteristics and shooting statistics can explain scoring efficiency in a short international tournament.
 
+## Folder and File Structure
+
+This project is organized into several main folders and files:
+
+- `EDA/`  
+  This folder contains the main Quarto analysis file and the player-level datasets used in the project. The file `EDAupdate.qmd` is the main source file for the final report. The CSV files inside this folder contain the player statistics and shooting statistics used for the analysis and models.
+
+- `EDA/finaldatagraph_files/figure-html/`  
+  This folder stores generated figure images from earlier rendered analysis files. These files are produced automatically by Quarto when plots are created.
+
+- `data/`  
+  This folder contains dataset documentation and supporting data files. The `dataset_readme.md` file explains information about the dataset.
+
+- `docs/`  
+  This folder contains the rendered website files for GitHub Pages. GitHub Pages uses this folder to display the project website. The `index.html` file is the homepage of the website.
+
+- `figures/`  
+  This folder is used to store additional figures or visual outputs for the project.
+
+- `.gitignore`  
+  This file tells Git which files or folders should not be tracked, such as system files like `.DS_Store` or temporary generated files.
+
+- `.nojekyll`  
+  This file helps GitHub Pages correctly publish the website without using Jekyll processing.
+
+- `README.md`  
+  This file provides an overview of the project, including the research question, dataset, methods, results summary, tools, and folder structure.
+
+- `_quarto.yml`  
+  This is the Quarto project configuration file. It controls how the Quarto website is rendered and where the output files are saved.
+
+- `hedgehog.png`  
+  This is an image file included in the project folder.
+
+- `styles.css`  
+  This file contains custom styling for the Quarto website.
+
 ## Research Question
 
 Can player-level variables such as position, age, minutes played, shot volume, and shot quality explain why some players overperform or underperform their expected goals in the 2022 FIFA World Cup?
