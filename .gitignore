@@ -3,8 +3,6 @@
 *.aux
 *.log
 *.out
-*_files/
 .Rproj.user/
 
-/.quarto/
-**/*.quarto_ipynb
+EDA/EDAupdate_files/
