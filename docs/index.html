@@ -1,8 +1,1651 @@
-<html xmlns="http://www.w3.org/1999/xhtml">    
-  <head>      
-    <title>Redirect to EDA/EDAupdate.html</title>      
-    <meta http-equiv="refresh" content="0;URL='EDA/EDAupdate.html'" />    
-  </head>    
-  <body> 
-  </body>  
-</html>     
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Gaku Aihara and Jerry Xu">
+
+<title>FIFA World Cup 2022 Scoring Efficiency Analysis - EDA – M244 Project</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">M244 Project</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../EDAupdate.qmd"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#exploratory-data-analysis" id="toc-exploratory-data-analysis" class="nav-link active" data-scroll-target="#exploratory-data-analysis">Exploratory Data Analysis</a>
+  <ul class="collapse">
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
+  <li><a href="#exploring-the-data" id="toc-exploring-the-data" class="nav-link" data-scroll-target="#exploring-the-data">Exploring the Data</a></li>
+  <li><a href="#data-cleaning-and-transformation" id="toc-data-cleaning-and-transformation" class="nav-link" data-scroll-target="#data-cleaning-and-transformation">Data Cleaning and Transformation</a>
+  <ul class="collapse">
+  <li><a href="#figure-1" id="toc-figure-1" class="nav-link" data-scroll-target="#figure-1">Figure 1</a></li>
+  <li><a href="#figure-2" id="toc-figure-2" class="nav-link" data-scroll-target="#figure-2">Figure 2</a></li>
+  <li><a href="#figure-3" id="toc-figure-3" class="nav-link" data-scroll-target="#figure-3">Figure 3</a></li>
+  <li><a href="#figure-4" id="toc-figure-4" class="nav-link" data-scroll-target="#figure-4">Figure 4</a></li>
+  <li><a href="#figure-5" id="toc-figure-5" class="nav-link" data-scroll-target="#figure-5">Figure 5</a></li>
+  <li><a href="#figure-6" id="toc-figure-6" class="nav-link" data-scroll-target="#figure-6">Figure 6</a></li>
+  <li><a href="#figure-7" id="toc-figure-7" class="nav-link" data-scroll-target="#figure-7">Figure 7</a></li>
+  <li><a href="#figure-8" id="toc-figure-8" class="nav-link" data-scroll-target="#figure-8">Figure 8</a></li>
+  <li><a href="#figure-9" id="toc-figure-9" class="nav-link" data-scroll-target="#figure-9">Figure 9</a></li>
+  <li><a href="#data-summary" id="toc-data-summary" class="nav-link" data-scroll-target="#data-summary">Data Summary</a></li>
+  </ul></li>
+  <li><a href="#modelingmethodology" id="toc-modelingmethodology" class="nav-link" data-scroll-target="#modelingmethodology">Modeling(Methodology)</a>
+  <ul class="collapse">
+  <li><a href="#ols" id="toc-ols" class="nav-link" data-scroll-target="#ols">OLS</a></li>
+  <li><a href="#ridge" id="toc-ridge" class="nav-link" data-scroll-target="#ridge">Ridge</a></li>
+  <li><a href="#lasso" id="toc-lasso" class="nav-link" data-scroll-target="#lasso">LASSO</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a></li>
+  <li><a href="#codebook" id="toc-codebook" class="nav-link" data-scroll-target="#codebook">Codebook</a></li>
+  </ul></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="EDAupdate.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">FIFA World Cup 2022 Scoring Efficiency Analysis - EDA</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Gaku Aihara and Jerry Xu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="exploratory-data-analysis" class="level1">
+<h1>Exploratory Data Analysis</h1>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>This project studies scoring efficiency in the 2022 FIFA World Cup. Specifically, we ask whether player-level statistics such as position, age, playing time, shot volume, and shot quality can explain why some players score more or fewer goals than expected. Our main outcome variable is `xg_diff`, defined as actual goals minus expected goals. A positive value means a player overperformed their xG, while a negative value means they underperformed.<br>
+<br>
+This question is important because expected goals are widely used in soccer analytics to evaluate player performance, but short tournaments like the World Cup may contain a large amount of randomness. By comparing exploratory visualizations with OLS, Ridge, and LASSO models, we evaluate whether scoring efficiency can be explained by basic player and shooting statistics.</p>
+</section>
+<section id="data" class="level2">
+<h2 class="anchored" data-anchor-id="data">Data</h2>
+<p>Our primary dataset was gathered from Kaggle which originally gathered data from FBRef, a widely used source for soccer statistics. We had initially tried scraping from FBRef itself but the licensing would not allow us to. The dataset contains 680 player-level observations from the 2022 FIFA World Cup, including key variables such as goals, expected goals, age, position, team, and a variety of per-90 performance metrics. We supplemented this with another Kaggle dataset that contained shooting-specific information such as shot volume, shots on target, average shot distance, and non-penalty xG per shot. These additional variables allow us to better capture the quality and quantity of a player’s scoring opportunities, not just their outcomes.</p>
+</section>
+<section id="exploring-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="exploring-the-data">Exploring the Data</h2>
+<p><strong>What is your outcome variable(s)?</strong></p>
+<p>Our outcome variable will be xg_diff, the measurement of scoring efficiency computed by taking the difference between Goals and xG.</p>
+<p><strong>How well does it measure the outcome you are interested?</strong></p>
+<p>This outcome variable measures how much a player converts relative to the quality of their chances. We believe it is a reasonable proxy but can be noisy with players who have low shot volume and xG models themselves have errors.</p>
+<p><strong>How does it relate to your expectations?</strong></p>
+<p>We would expect forwards to show high variance while other positions to cluster near zero. We would also expect younger, more creative players to slightly overperform.</p>
+<p><strong>What are your key explanatory variables?</strong> - <em>age_years</em>: player age - <em>position</em>: player position (FW, MF, DF, GK) - <em>xG_assist_per90</em>: expected goals assisted per 90 minutes, capturing a players playmaking contributions normalized for playing time. - <em>minutes_90s</em>: measurement of the amount of playing time a player gets relative to games - <em>shots</em>: total number of shot attempts a player has made throughout the tournament - <em>shots_on_target</em>: total number of shot attempts by a player that was within the goal frame - <em>goals_per_shot</em>: the ratio of goals scored to total shots taken - <em>average_shot_distance</em>: the average shot distance of all the shots taken by a single player - <em>np_xg_per_shot</em>: describes the quality of the shot by measuring the non-penalty expected goal per shot</p>
+</section>
+<section id="data-cleaning-and-transformation" class="level2">
+<h2 class="anchored" data-anchor-id="data-cleaning-and-transformation">Data Cleaning and Transformation</h2>
+<p>The raw dataset contained 680 player observations from the 2022 FIFA World Cup.</p>
+<p><strong>Filtering:</strong> We removed players with fewer than 1 full 90-minute equivalent play time and also dropped rows with missing values in xg, goals, position, and age_years. After doing this, we remained with 485 observations.</p>
+<p><strong>New variables:</strong> Our primary outcome variable, xg_diff, was created by subtracting a player’s xG from their actual goals. A positive value indicates overperformance while a negative value indicates underperformance. Lastly, the is_overperformer variable was created taking value 1 if a player scored more than their xG and 0 otherwise.</p>
+<p><strong>Age-parsing:</strong> The age variable was stored as a character string “years-days” format so we extracted only the years as an integer.</p>
+<section id="figure-1" class="level3">
+<h3 class="anchored" data-anchor-id="figure-1">Figure 1</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The distribution shows that most players cluster around zero, indicating that players generally perform close to their expected goals. There is a slight right tail, indicating that a smaller number of players significantly outperform their xG. Overall, extreme overperformers and underperformers are relatively rare.</p>
+</section>
+<section id="figure-2" class="level3">
+<h3 class="anchored" data-anchor-id="figure-2">Figure 2</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This boxplot shows that forwards tend to have a wider spread and slightly higher median efficiency compared to other positions. Defenders and midfielders are generally centered around zero, suggesting they perform closer to expectations. Goalkeepers show no variation since they rarely score, so their efficiency remains near zero.</p>
+</section>
+<section id="figure-3" class="level3">
+<h3 class="anchored" data-anchor-id="figure-3">Figure 3</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This Bar Chart reveals that midfielders and defenders actually underperform their xG while forwards overperform. We also notice that both goals and xg is nonexistent for goalkeepers, indicating that the GK position is irrelevant to our interest of study. These findings suggest that position is a meaningful predictor of xg_diff.</p>
+</section>
+<section id="figure-4" class="level3">
+<h3 class="anchored" data-anchor-id="figure-4">Figure 4</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This suggests that age is not a strong predictor of scoring efficiency in this dataset, as points are widely scattered across all ages. Both younger and older players can either overperform or underperform their xG. This suggests that age is not a strong predictor of scoring efficiency in this dataset.</p>
+</section>
+<section id="figure-5" class="level3">
+<h3 class="anchored" data-anchor-id="figure-5">Figure 5</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This horizontal bar chart highlights the players who differentiated the greatest from their statistical expectations. An observation is that all overperformers were led by forwards including the top goal scorer of the tournament Kylian Mbappe. This typically means these players have exceptional finishing abilities scoring from difficult angles/distances. The underscorers on the other hand are a mix of forwards, midfielders, and even defenders. This indicates that players like Jamal Musiala and Lautaro Martinez, who sit at the bottom, were frequently in good scoring positions but struggled with their final touch or encountered exceptional goalkeeping.</p>
+</section>
+<section id="figure-6" class="level3">
+<h3 class="anchored" data-anchor-id="figure-6">Figure 6</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This xG vs Actual goals scatter plot provides a broader view of player efficiency across different positions (Fowards, Midfielders, Defenders, Goalkeepers). The dashed line represents the break-even point where players over the line overperformed and players under the line underperformed. Again, a key outlier is Kylian Mbappe representing the highest expected goal (roughly 5.2) and highest actual goal count (8). There is a clear cluster of observations near the origin which represents the limited scoring opportunities, primarily consisting of defenders and midfielders. The overall trend seems to be that majority of the high-volume scorers are forwards.</p>
+</section>
+<section id="figure-7" class="level3">
+<h3 class="anchored" data-anchor-id="figure-7">Figure 7</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This bar chart highlights the players who most exceeded their expected goals during the tournament. Kylian Mbappé stands out as the most efficient scorer, significantly outperforming his xG compared to others. The remaining players also show strong positive efficiency, indicating exceptional finishing performance.</p>
+</section>
+<section id="figure-8" class="level3">
+<h3 class="anchored" data-anchor-id="figure-8">Figure 8</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This figure compares the total amount of shots of each player with shooting efficiency. Each plot represents a single player and they are color coded by positions. The dotted line at 0 defines the margin where players above the line overperformed their expected goals and players below the line underperformed. Looking at the plot, many of the extreme overperformers cluster in the low to mid shot range (roughly 5-15), meaning the biggest positive surprise came from players who didn’t take many shots. The players with the most shots consist entirely of forwards, which are evenly spread above and below zero. This suggests that high shot volume doesn’t necessarily guarantee outperforming xG. Lastly, midfielders and defenders cluster around 0 which is not surprising because they rarely get as many opportunities as forwards to attack the goal.</p>
+</section>
+<section id="figure-9" class="level3">
+<h3 class="anchored" data-anchor-id="figure-9">Figure 9</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This correlation plot visualizes the pairwise relationships between our outcome variable and all predictor variables. The most notable finding with respect to <em>xg_diff</em> is its strong positive correlation with <em>goals_per_shot</em> (<span class="math inline">\(0.57\)</span>). This makes intuitive sense because players who convert a higher fraction of their shots directly score more goals relative to their xG. The second highest predictor is <em>shots_on_target</em> (<span class="math inline">\(0.33\)</span>), suggesting that shot accuracy is more predictive of outperforming xG than raw shot volume. Interestingly, <em>shots</em> itself only correlates at <span class="math inline">\(0.14\)</span> with our outcome variable, reinforcing that taking more shots does not guarantee overperformance.Almost every other predictor variable is near zero relative to our <em>xg_diff</em>. One notable relationship not involving <em>xg_diff</em> is the strong positive correlation (<span class="math inline">\(0.84\)</span>) between <em>shots</em> and <em>shots_on_target</em>. This suggests multicollinearity and including both variables in the model would not be optimal. Similarly, <em>goals_per_shot</em> and <em>npxg_per_shot</em> have a strong positive correlation of <span class="math inline">\(0.65\)</span>, and <em>average_shot_distance</em> negatively correlates with <em>npxg_per_shot</em> at <span class="math inline">\(-0.55\)</span>, confirming that shots taken from farther away are of low quality.</p>
+</section>
+<section id="data-summary" class="level3">
+<h3 class="anchored" data-anchor-id="data-summary">Data Summary</h3>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>     goals              xg           xg_diff             age_years    
+ Min.   :0.0000   Min.   :0.000   Min.   :-1.9000000   Min.   :18.00  
+ 1st Qu.:0.0000   1st Qu.:0.000   1st Qu.:-0.2000000   1st Qu.:24.00  
+ Median :0.0000   Median :0.100   Median : 0.0000000   Median :27.00  
+ Mean   :0.3278   Mean   :0.327   Mean   : 0.0008247   Mean   :27.34  
+ 3rd Qu.:0.0000   3rd Qu.:0.400   3rd Qu.: 0.0000000   3rd Qu.:30.00  
+ Max.   :8.0000   Max.   :6.600   Max.   : 2.8000000   Max.   :39.00  
+                                                                      
+     shots         minutes_90s    xg_assist_per90   average_shot_distance
+ Min.   : 0.000   Min.   :1.000   Min.   :0.00000   Min.   : 0.90        
+ 1st Qu.: 0.000   1st Qu.:1.700   1st Qu.:0.00000   1st Qu.:11.50        
+ Median : 2.000   Median :2.800   Median :0.03000   Median :16.50        
+ Mean   : 2.691   Mean   :2.803   Mean   :0.08371   Mean   :17.44        
+ 3rd Qu.: 4.000   3rd Qu.:3.400   3rd Qu.:0.11000   3rd Qu.:22.40        
+ Max.   :29.000   Max.   :7.700   Max.   :1.44000   Max.   :46.60        
+                                                    NA's   :124          
+ npxg_per_shot   
+ Min.   :0.0100  
+ 1st Qu.:0.0400  
+ Median :0.0800  
+ Mean   :0.1094  
+ 3rd Qu.:0.1300  
+ Max.   :0.9600  
+ NA's   :124     </code></pre>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">df</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">485</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">40</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">factor</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">35</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 13%">
+<col style="width: 19%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+<th style="text-align: right;">empty</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: right;">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">player</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">485</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">team</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">age</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">459</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">club</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">203</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 11%">
+<col style="width: 15%">
+<col style="width: 8%">
+<col style="width: 10%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">ordered</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: left;">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">position</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">DF: 183, MF: 144, FW: 119, GK: 39</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 9%">
+<col style="width: 12%">
+<col style="width: 7%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">birth_year</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1994.63</td>
+<td style="text-align: right;">4.15</td>
+<td style="text-align: right;">1983.00</td>
+<td style="text-align: right;">1992.00</td>
+<td style="text-align: right;">1995.00</td>
+<td style="text-align: right;">1998.00</td>
+<td style="text-align: right;">2004.00</td>
+<td style="text-align: left;">▁▅▇▇▃</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">games</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.48</td>
+<td style="text-align: right;">1.40</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.00</td>
+<td style="text-align: right;">3.00</td>
+<td style="text-align: right;">4.00</td>
+<td style="text-align: right;">7.00</td>
+<td style="text-align: left;">▃▇▅▂▂</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">games_starts</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.80</td>
+<td style="text-align: right;">1.53</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">3.00</td>
+<td style="text-align: right;">4.00</td>
+<td style="text-align: right;">7.00</td>
+<td style="text-align: left;">▃▃▇▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">minutes</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">252.37</td>
+<td style="text-align: right;">131.50</td>
+<td style="text-align: right;">86.00</td>
+<td style="text-align: right;">151.00</td>
+<td style="text-align: right;">249.00</td>
+<td style="text-align: right;">310.00</td>
+<td style="text-align: right;">690.00</td>
+<td style="text-align: left;">▇▇▃▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">minutes_90s</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.80</td>
+<td style="text-align: right;">1.46</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.70</td>
+<td style="text-align: right;">2.80</td>
+<td style="text-align: right;">3.40</td>
+<td style="text-align: right;">7.70</td>
+<td style="text-align: left;">▇▇▃▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">goals</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">8.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">assists</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.24</td>
+<td style="text-align: right;">0.56</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">3.00</td>
+<td style="text-align: left;">▇▂▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">goals_pens</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.29</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">6.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pens_made</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">4.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pens_att</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.31</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">5.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">cards_yellow</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.61</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3.00</td>
+<td style="text-align: left;">▇▃▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cards_red</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">goals_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.29</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.05</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">assists_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.19</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">goals_assists_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.37</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">2.37</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">goals_pens_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.05</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">goals_assists_pens_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">0.36</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">2.37</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">xg</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">6.60</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">npxg</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.29</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">3.60</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">xg_assist</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">0.36</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.30</td>
+<td style="text-align: right;">3.10</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">npxg_xg_assist</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.51</td>
+<td style="text-align: right;">0.67</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.30</td>
+<td style="text-align: right;">0.70</td>
+<td style="text-align: right;">5.10</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">xg_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">1.19</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">xg_assist_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">1.44</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">xg_xg_assist_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.21</td>
+<td style="text-align: right;">0.26</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">1.54</td>
+<td style="text-align: left;">▇▂▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">npxg_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">1.19</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">npxg_xg_assist_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.27</td>
+<td style="text-align: right;">1.54</td>
+<td style="text-align: left;">▇▂▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">xg_diff</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">-1.90</td>
+<td style="text-align: right;">-0.20</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.80</td>
+<td style="text-align: left;">▁▆▇▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">efficiency_per90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">-1.00</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.63</td>
+<td style="text-align: left;">▁▇▂▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">age_years</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">27.34</td>
+<td style="text-align: right;">4.15</td>
+<td style="text-align: right;">18.00</td>
+<td style="text-align: right;">24.00</td>
+<td style="text-align: right;">27.00</td>
+<td style="text-align: right;">30.00</td>
+<td style="text-align: right;">39.00</td>
+<td style="text-align: left;">▃▇▇▅▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">is_overperformer</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.39</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">▇▁▁▁▂</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">shots</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.69</td>
+<td style="text-align: right;">3.34</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">4.00</td>
+<td style="text-align: right;">29.00</td>
+<td style="text-align: left;">▇▂▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">shots_on_target</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.89</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">13.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">average_shot_distance</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">17.44</td>
+<td style="text-align: right;">7.24</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">11.50</td>
+<td style="text-align: right;">16.50</td>
+<td style="text-align: right;">22.40</td>
+<td style="text-align: right;">46.60</td>
+<td style="text-align: left;">▂▇▅▂▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">goals_per_shot</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.21</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">npxg_per_shot</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">0.96</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+<section id="modelingmethodology" class="level2">
+<h2 class="anchored" data-anchor-id="modelingmethodology">Modeling(Methodology)</h2>
+<p>We model <em>xg_diff</em> (scoring efficiency computed as goals - expected goals) as a function of player age, position, playing time, playmaking context, shot volume, shot distance, and shot quality. We excluded goalkeepers from all models as they are not meaningful for scoring analysis. We also exclude <em>goals_per_shot</em> and <em>shots_on_target</em> from predictors due to the high correlation we found from the correlation matrix. All three models (OLS, Ridge, LASSO) are evaluated using 10-fold cross-validation with both RMSE and MAE as performance metrics.</p>
+<p>Our model is specified as:</p>
+<p><span class="math display">\[xg\_diff = \beta_0 + \beta_1(age\_years) + \beta_2(position) + \beta_3(minutes\_90s) + \\\beta_4(xg\_assist\_per90) + \beta_5(shots) + \beta_6(average\_shot\_distance) + \\\beta_7(npxg\_per\_shot) + \varepsilon\]</span></p>
+<section id="ols" class="level3">
+<h3 class="anchored" data-anchor-id="ols">OLS</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>OLS Coefficients (R² = 0.048)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">term</th>
+<th style="text-align: right;">estimate</th>
+<th style="text-align: right;">std.error</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.1178</td>
+<td style="text-align: right;">0.2134</td>
+<td style="text-align: right;">0.5521</td>
+<td style="text-align: right;">0.5812</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">age_years</td>
+<td style="text-align: right;">-0.0096</td>
+<td style="text-align: right;">0.0066</td>
+<td style="text-align: right;">-1.4522</td>
+<td style="text-align: right;">0.1473</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">positionMF</td>
+<td style="text-align: right;">-0.1752</td>
+<td style="text-align: right;">0.0738</td>
+<td style="text-align: right;">-2.3732</td>
+<td style="text-align: right;">0.0182</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">positionDF</td>
+<td style="text-align: right;">-0.1346</td>
+<td style="text-align: right;">0.0804</td>
+<td style="text-align: right;">-1.6746</td>
+<td style="text-align: right;">0.0949</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">minutes_90s</td>
+<td style="text-align: right;">0.0351</td>
+<td style="text-align: right;">0.0213</td>
+<td style="text-align: right;">1.6489</td>
+<td style="text-align: right;">0.1001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">xg_assist_per90</td>
+<td style="text-align: right;">0.0082</td>
+<td style="text-align: right;">0.1984</td>
+<td style="text-align: right;">0.0413</td>
+<td style="text-align: right;">0.9671</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">shots</td>
+<td style="text-align: right;">0.0070</td>
+<td style="text-align: right;">0.0101</td>
+<td style="text-align: right;">0.6965</td>
+<td style="text-align: right;">0.4866</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">average_shot_distance</td>
+<td style="text-align: right;">0.0048</td>
+<td style="text-align: right;">0.0046</td>
+<td style="text-align: right;">1.0504</td>
+<td style="text-align: right;">0.2943</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">npxg_per_shot</td>
+<td style="text-align: right;">0.3476</td>
+<td style="text-align: right;">0.2736</td>
+<td style="text-align: right;">1.2704</td>
+<td style="text-align: right;">0.2048</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The OLS model returns an <span class="math inline">\(R^2\)</span> of <span class="math inline">\(0.048\)</span>, meaning our predictors explain about <span class="math inline">\(4.8%\)</span> of the variance in <em>xg_diff</em>. This is extremely low but not too surprising as it shows scoring efficiency is very noisy and difficult to predict from player-level statistics alone. <em>positionMF</em> was our only statistically significant coefficient indicating that midfielders on average score approximately 0.17 goals less than their xG relative to forwards with all other variables held constant. <em>positionDF</em> is also marginally significant.</p>
+</section>
+<section id="ridge" class="level3">
+<h3 class="anchored" data-anchor-id="ridge">Ridge</h3>
+<p>Ridge regression applies L2 regularization which penalizes the sum of squares coefficients to shrink all predictors towards zero without eliminating any. The optimal lambda selected by cross-validation is 0.3588 indicating moderate regularization strength.</p>
+</section>
+<section id="lasso" class="level3">
+<h3 class="anchored" data-anchor-id="lasso">LASSO</h3>
+<p>LASSO regression applies L1 regularization which performs automatic variable selection by shrinking selected coefficients to zero.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>LASSO Coefficients (lambda = 0.004)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;">Coefficient</th>
+<th style="text-align: left;">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">npxg_per_shot</td>
+<td style="text-align: right;">0.2735</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">positionMF</td>
+<td style="text-align: right;">-0.1514</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">positionDF</td>
+<td style="text-align: right;">-0.1139</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">minutes_90s</td>
+<td style="text-align: right;">0.0304</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">age_years</td>
+<td style="text-align: right;">-0.0086</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">shots</td>
+<td style="text-align: right;">0.0080</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">average_shot_distance</td>
+<td style="text-align: right;">0.0034</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">positionGK</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: left;">Zeroed Out</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">xg_assist_per90</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: left;">Zeroed Out</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>With an optimal lamdba of <span class="math inline">\(0.004\)</span>, LASSO zeroed out <em>positionGK</em> and <em>xg_assist_per90</em>. The first variable makes sense as goalkeepers do not contribute to scoring goals but the creativity metric being zeroed out is a surprise. <em>np_xg_per_shot</em> is retained with the largest magnitude coefficient (<span class="math inline">\(0.2735\)</span>). The two position dummies (<em>positionMF</em>, <em>positionDF</em>) are retained and have negative coefficients, reinforcing that non-forward positions tend to underperform their xG. The remaining retained variables (<em>minutes_90s</em>, <em>age_years</em>, <em>shots</em>, <em>average_shot_distance</em>) all have very small coefficients, suggesting their contribution is minimal but non-negligible after regularization.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>10-Fold CV Performance Across Models</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">CV RMSE</th>
+<th style="text-align: right;">CV MAE</th>
+<th style="text-align: right;">Optimal Lambda</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">OLS</td>
+<td style="text-align: right;">0.5122</td>
+<td style="text-align: right;">0.3297</td>
+<td style="text-align: right;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ridge</td>
+<td style="text-align: right;">0.5093</td>
+<td style="text-align: right;">0.3262</td>
+<td style="text-align: right;">0.3588</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">LASSO</td>
+<td style="text-align: right;">0.5110</td>
+<td style="text-align: right;">0.3287</td>
+<td style="text-align: right;">0.0040</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Ridge regression receives the lowest CV RMSE and CV MAE, making it the best performing model on both metrics. However, the difference across all three models are very small indicating that regularization provides little benefit over the standard OLS. This likely reflects the fact that our predictors are already weakly correlated with <em>xg_diff</em> so there is little to gain from shrinkage. Overall, while Ridge edges out the other methods, all three models suggest that the selected predictors have limited power in explaining scoring efficiency, and future modeling could benefit from additional data sources.</p>
+</section>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>The exploratory analysis shows that most players had an `xg_diff` close to zero, meaning most players scored near their expected goals. However, a small number of players strongly overperformed or underperformed. Position appeared to matter more than age or raw shot volume. Forwards had the widest spread in scoring efficiency and included most of the top overperformers, while midfielders and defenders tended to cluster closer to zero or slightly below zero.<br>
+<br>
+The correlation matrix showed that `goals_per_shot` had the strongest correlation with `xg_diff`, followed by `shots_on_target`. However, these variables were excluded from the final models because they are closely related to the outcome or highly correlated with other shooting variables. Other predictors, including age, minutes, shots, and average shot distance, had weak relationships with scoring efficiency.<br>
+<br>
+The OLS model had an \(R^2\) of 0.048, meaning the model explained only about 4.8% of the variation in scoring efficiency. This suggests that the selected player-level variables have limited explanatory power. Ridge regression had the best cross-validated RMSE and MAE, but the difference between OLS, Ridge, and LASSO was very small. Overall, the modeling results suggest that scoring efficiency in a short tournament is difficult to predict using only basic player and shooting statistics.</p>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
+<p>Our analysis suggests that scoring efficiency in the 2022 FIFA World Cup is difficult to predict using basic player-level and shooting statistics alone. Although some variables are related to overperformance, most predictors have weak relationships with `xg_diff`, which supports the idea that finishing above or below expected goals is highly noisy in a short tournament setting. The distribution of `xg_diff` shows that most players finished close to their expected goals, while only a small number of players strongly overperformed or underperformed.<br>
+<br>
+Position appears to be one of the most meaningful factors in our analysis. Forwards had the widest spread in scoring efficiency and were more likely to appear among the strongest overperformers. This makes sense because forwards take more shots and are usually the primary goal-scoring players on their teams. Midfielders and defenders tended to cluster closer to zero or slightly below zero, suggesting that they generally scored closer to or below expectation. Goalkeepers were not meaningful for this research question because they rarely produce scoring opportunities, so excluding them from the modeling stage was appropriate.<br>
+<br>
+The relationship between age and scoring efficiency was weak. Players of different ages appeared on both sides of the overperformance line, which suggests that age alone is not a strong predictor of whether a player will score more than expected. Similarly, total shot volume was not strongly associated with overperforming xG. Some players with many shots still underperformed, while some of the largest overperformers came from low or medium shot volume. This suggests that simply taking more shots does not guarantee better finishing efficiency.<br>
+<br>
+The correlation matrix gave more useful insight into which variables were most connected to scoring efficiency. `goals_per_shot` had the strongest positive correlation with `xg_diff`, which is intuitive because players who score on a higher percentage of their shots are more likely to outperform their xG. `shots_on_target` was also positively related to `xg_diff`, suggesting that shot accuracy matters more than raw shot quantity. However, we excluded `goals_per_shot` and `shots_on_target` from the final models because they are highly related to the outcome or strongly correlated with other shooting variables, which could create multicollinearity or make the model less interpretable.<br>
+<br>
+The modeling results reinforce the main finding from the EDA: scoring efficiency is difficult to explain with the variables available in this dataset. The OLS model had an \(R^2\) of only 0.048, meaning the predictors explained about 4.8% of the variation in `xg_diff`. Ridge regression performed slightly better than OLS and LASSO based on cross-validated RMSE and MAE, but the differences between the three models were very small. This indicates that regularization did not substantially improve predictive performance. LASSO retained variables such as `npxg_per_shot`, position, minutes, age, shots, and average shot distance, but most coefficients were small, again suggesting limited explanatory power.<br>
+<br>
+One important limitation of this project is that the World Cup is a small and short tournament. Many players have limited minutes and few shots, so one goal or one missed chance can greatly change a player’s `xg_diff`. This makes scoring efficiency much more unstable than it would be across a full club season. Another limitation is that xG models are not perfect. They estimate chance quality based on available information, but they may not fully capture defensive pressure, goalkeeper positioning, shot technique, tactical context, or game state. Also, our dataset is player-level rather than shot-level, so we lose detailed information about each individual chance.<br>
+<br>
+Future work could improve this analysis by using shot-level data instead of aggregated player-level statistics. Shot-level data would allow us to include variables such as shot angle, body part used, defensive pressure, pass type, match situation, and goalkeeper position. It would also be useful to compare World Cup performance with players’ club performance across a full season to see whether overperformance in the tournament reflects true finishing skill or short-term randomness. Finally, adding team-level variables such as possession, attacking style, and strength of opponents could help explain why some players receive higher-quality chances than others.<br>
+<br>
+Overall, our results suggest that scoring efficiency is not easily predicted from simple player statistics. Position and shooting quality provide some insight, but most of the variation in `xg_diff` appears to come from randomness, small sample size, and contextual factors not captured in the dataset. This supports the idea that xG overperformance in a short tournament should be interpreted carefully rather than treated as a stable measure of finishing ability.</p>
+</section>
+<section id="codebook" class="level2">
+<h2 class="anchored" data-anchor-id="codebook">Codebook</h2>
+<p>The codebook can be found in our GitHub in our data/ folder: <a href="https://github.com/zibojerryxu/Math-244-final-project-Team-GG/blob/main/data/dataset_readme.md" class="uri">https://github.com/zibojerryxu/Math-244-final-project-Team-GG/blob/main/data/dataset_readme.md</a></p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

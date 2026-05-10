@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Gaku Aihara and Jerry Xu">
 
-<title>FIFA 2022 Scoring Efficiency Analysis – M244 Project</title>
+<title>FIFA World Cup 2022 Scoring Efficiency Analysis - EDA – M244 Project</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,41 +20,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -104,6 +70,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -128,7 +123,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../EDAupdate.html"> 
+    <a class="nav-link" href="../EDAupdate.qmd"> 
 <span class="menu-text">Home</span></a>
   </li>  
 </ul>
@@ -149,6 +144,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#exploratory-data-analysis" id="toc-exploratory-data-analysis" class="nav-link active" data-scroll-target="#exploratory-data-analysis">Exploratory Data Analysis</a>
   <ul class="collapse">
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
   <li><a href="#exploring-the-data" id="toc-exploring-the-data" class="nav-link" data-scroll-target="#exploring-the-data">Exploring the Data</a></li>
   <li><a href="#data-cleaning-and-transformation" id="toc-data-cleaning-and-transformation" class="nav-link" data-scroll-target="#data-cleaning-and-transformation">Data Cleaning and Transformation</a>
   <ul class="collapse">
@@ -160,24 +157,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#figure-6" id="toc-figure-6" class="nav-link" data-scroll-target="#figure-6">Figure 6</a></li>
   <li><a href="#figure-7" id="toc-figure-7" class="nav-link" data-scroll-target="#figure-7">Figure 7</a></li>
   <li><a href="#figure-8" id="toc-figure-8" class="nav-link" data-scroll-target="#figure-8">Figure 8</a></li>
+  <li><a href="#figure-9" id="toc-figure-9" class="nav-link" data-scroll-target="#figure-9">Figure 9</a></li>
   <li><a href="#data-summary" id="toc-data-summary" class="nav-link" data-scroll-target="#data-summary">Data Summary</a></li>
   </ul></li>
+  <li><a href="#modelingmethodology" id="toc-modelingmethodology" class="nav-link" data-scroll-target="#modelingmethodology">Modeling(Methodology)</a>
+  <ul class="collapse">
+  <li><a href="#ols" id="toc-ols" class="nav-link" data-scroll-target="#ols">OLS</a></li>
+  <li><a href="#ridge" id="toc-ridge" class="nav-link" data-scroll-target="#ridge">Ridge</a></li>
+  <li><a href="#lasso" id="toc-lasso" class="nav-link" data-scroll-target="#lasso">LASSO</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a></li>
+  <li><a href="#codebook" id="toc-codebook" class="nav-link" data-scroll-target="#codebook">Codebook</a></li>
   </ul></li>
   </ul>
-</nav>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="EDAupdate.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">FIFA 2022 Scoring Efficiency Analysis</h1>
+<h1 class="title">FIFA World Cup 2022 Scoring Efficiency Analysis - EDA</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Gaku Aihara and Jerry Xu </p>
+          </div>
+  </div>
     
   
     
@@ -190,26 +203,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="exploratory-data-analysis" class="level1">
 <h1>Exploratory Data Analysis</h1>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># libraries</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(skimr)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># load data</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"/Users/xuzibo/Desktop/Math244/final/Math-244-final-project-Team-GG/data/player_stats.csv"</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># preview </span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># glimpse(df)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>This project studies scoring efficiency in the 2022 FIFA World Cup. Specifically, we ask whether player-level statistics such as position, age, playing time, shot volume, and shot quality can explain why some players score more or fewer goals than expected. Our main outcome variable is `xg_diff`, defined as actual goals minus expected goals. A positive value means a player overperformed their xG, while a negative value means they underperformed.<br>
+<br>
+This question is important because expected goals are widely used in soccer analytics to evaluate player performance, but short tournaments like the World Cup may contain a large amount of randomness. By comparing exploratory visualizations with OLS, Ridge, and LASSO models, we evaluate whether scoring efficiency can be explained by basic player and shooting statistics.</p>
+</section>
+<section id="data" class="level2">
+<h2 class="anchored" data-anchor-id="data">Data</h2>
+<p>Our primary dataset was gathered from Kaggle which originally gathered data from FBRef, a widely used source for soccer statistics. We had initially tried scraping from FBRef itself but the licensing would not allow us to. The dataset contains 680 player-level observations from the 2022 FIFA World Cup, including key variables such as goals, expected goals, age, position, team, and a variety of per-90 performance metrics. We supplemented this with another Kaggle dataset that contained shooting-specific information such as shot volume, shots on target, average shot distance, and non-penalty xG per shot. These additional variables allow us to better capture the quality and quantity of a player’s scoring opportunities, not just their outcomes.</p>
+</section>
 <section id="exploring-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="exploring-the-data">Exploring the Data</h2>
 <p><strong>What is your outcome variable(s)?</strong></p>
@@ -218,53 +221,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>This outcome variable measures how much a player converts relative to the quality of their chances. We believe it is a reasonable proxy but can be noisy with players who have low shot volume and xG models themselves have errors.</p>
 <p><strong>How does it relate to your expectations?</strong></p>
 <p>We would expect forwards to show high variance while other positions to cluster near zero. We would also expect younger, more creative players to slightly overperform.</p>
-<p><strong>What are your key explanatory variables?</strong><br>
-– goals: total goals scored<br>
-- xg: expected goals<br>
-- age_numeric: player age<br>
-- position: player position (FW, MF, DF, GK)</p>
-<p>- xG_assist_per90: playmaking context</p>
-<p>- minutes_90s: measurement of playing time<br>
-- team: national team</p>
+<p><strong>What are your key explanatory variables?</strong> - <em>age_years</em>: player age - <em>position</em>: player position (FW, MF, DF, GK) - <em>xG_assist_per90</em>: expected goals assisted per 90 minutes, capturing a players playmaking contributions normalized for playing time. - <em>minutes_90s</em>: measurement of the amount of playing time a player gets relative to games - <em>shots</em>: total number of shot attempts a player has made throughout the tournament - <em>shots_on_target</em>: total number of shot attempts by a player that was within the goal frame - <em>goals_per_shot</em>: the ratio of goals scored to total shots taken - <em>average_shot_distance</em>: the average shot distance of all the shots taken by a single player - <em>np_xg_per_shot</em>: describes the quality of the shot by measuring the non-penalty expected goal per shot</p>
 </section>
 <section id="data-cleaning-and-transformation" class="level2">
 <h2 class="anchored" data-anchor-id="data-cleaning-and-transformation">Data Cleaning and Transformation</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean data and create key variables</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">xg_diff =</span> goals <span class="sc">-</span> xg,                          <span class="co"># scoring efficiency</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">efficiency_per90 =</span> goals_per90 <span class="sc">-</span> xg_per90,     <span class="co"># per 90 efficiency</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">np_xg_diff =</span> goals_pens <span class="sc">-</span> npxg,                <span class="co"># non-penalty efficiency</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">np_efficiency_per90 =</span> (goals_pens <span class="sc">/</span> minutes_90s) <span class="sc">-</span> (npxg <span class="sc">/</span> minutes_90s),</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">age_years =</span> <span class="fu">as.integer</span>(<span class="fu">str_extract</span>(age, <span class="st">"^[0-9]+"</span>)),  <span class="co"># extract numeric age</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">is_overperformer =</span> <span class="fu">if_else</span>(xg_diff <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>L, <span class="dv">0</span>L),      <span class="co"># binary indicator</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="fu">factor</span>(position, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"FW"</span>, <span class="st">"MF"</span>, <span class="st">"DF"</span>, <span class="st">"GK"</span>))</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(minutes_90s <span class="sc">&gt;=</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span>                    <span class="co"># remove low playing time</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(xg, goals, position, age_years)         <span class="co"># drop missing values</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
 <p>The raw dataset contained 680 player observations from the 2022 FIFA World Cup.</p>
-<p><strong>Filtering:</strong> We removed players with fewer than 1 full 90-minute equivalent play time and also dropped rows with missing values in xg, goals, position, and age_years.</p>
-<p><strong>New variables:</strong> Our primary outcome variable, xg_diff, was created by subtracting a player’s xG from their actual goals. A positive value indicates overperformance while a negative value indicates underperformance. We also created efficiency_per90 as the per-90 rate version of this difference which adjusts for playing time differences across players. The non-penalty version np_xg_diff was additionally created to remove the distorting effects of penalties. Lastly, the is_overperformer variable was created taking value 1 if a player scored more than their xG and 0 otherwise.</p>
+<p><strong>Filtering:</strong> We removed players with fewer than 1 full 90-minute equivalent play time and also dropped rows with missing values in xg, goals, position, and age_years. After doing this, we remained with 485 observations.</p>
+<p><strong>New variables:</strong> Our primary outcome variable, xg_diff, was created by subtracting a player’s xG from their actual goals. A positive value indicates overperformance while a negative value indicates underperformance. Lastly, the is_overperformer variable was created taking value 1 if a player scored more than their xG and 0 otherwise.</p>
 <p><strong>Age-parsing:</strong> The age variable was stored as a character string “years-days” format so we extracted only the years as an integer.</p>
 <section id="figure-1" class="level3">
 <h3 class="anchored" data-anchor-id="figure-1">Figure 1</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Distribution of Efficiency</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> xg_diff)) <span class="sc">+</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">30</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span> <span class="co"># histogram</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span>            <span class="co">#break even line</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Distribution of Scoring Efficiency (Goals - xG)"</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"xG Difference"</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Number of Players"</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -274,19 +245,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="figure-2" class="level3">
 <h3 class="anchored" data-anchor-id="figure-2">Figure 2</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Efficiency by Position (BOXPLOT)</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> position, <span class="at">y =</span> xg_diff, <span class="at">fill =</span> position)) <span class="sc">+</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Scoring Efficiency by Position"</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Position"</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Scoring Efficiency (Goals − xG)"</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -296,35 +258,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="figure-3" class="level3">
 <h3 class="anchored" data-anchor-id="figure-3">Figure 3</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Total Goals vs Total xG by Position Plot</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>df <span class="sc">|&gt;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(position) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Goals =</span> <span class="fu">sum</span>(goals),                 <span class="co"># total goals by position</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_xG    =</span> <span class="fu">sum</span>(xg, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)       <span class="co"># total expected goals</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(Total_Goals, Total_xG),          <span class="co"># reshape for plotting</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"metric"</span>,</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"value"</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> position, <span class="at">y =</span> value, <span class="at">fill =</span> metric)) <span class="sc">+</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">width =</span> <span class="fl">0.6</span>) <span class="sc">+</span> <span class="co"># side-by-side bars</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Total_Goals"</span> <span class="ot">=</span> <span class="st">"#3b82f6"</span>,</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Total_xG"</span>    <span class="ot">=</span> <span class="st">"#94a3b8"</span></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Total Goals vs. Total xG by Position"</span>,</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Total"</span>,</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="cn">NULL</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -334,21 +271,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="figure-4" class="level3">
 <h3 class="anchored" data-anchor-id="figure-4">Figure 4</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Age vs Efficiency</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot age against scoring efficiency</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> age_years, <span class="at">y =</span> xg_diff)) <span class="sc">+</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span>                              <span class="co"># scatterplot points</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">formula =</span> y <span class="sc">~</span> x) <span class="sc">+</span> <span class="co"># regression line</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Age vs Scoring Efficiency"</span>,</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Age"</span>,</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Scoring Efficiency (Goals − xG)"</span>) <span class="sc">+</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">15</span>, <span class="dv">45</span>, <span class="at">by =</span> <span class="dv">5</span>)) <span class="sc">+</span>    <span class="co"># x-axis labels</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()                                       <span class="co"># clean theme</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -358,49 +284,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="figure-5" class="level3">
 <h3 class="anchored" data-anchor-id="figure-5">Figure 5</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Top 5 over and under performers plot</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>top5_over  <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> </span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(<span class="at">order_by =</span> xg_diff, <span class="at">n =</span> <span class="dv">5</span>) <span class="sc">|&gt;</span>        <span class="co"># highest xg_diff</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group =</span> <span class="st">"Overperformer"</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>top5_under <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> </span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(<span class="at">order_by =</span> xg_diff, <span class="at">n =</span> <span class="dv">5</span>) <span class="sc">|&gt;</span>        <span class="co"># lowest xg_diff</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group =</span> <span class="st">"Underperformer"</span>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(top5_over, top5_under) <span class="sc">|&gt;</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">paste0</span>(player, <span class="st">" ("</span>, team, <span class="st">")"</span>),     <span class="co"># player label</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">fct_reorder</span>(label, xg_diff)          <span class="co"># order by performance</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> xg_diff, <span class="at">y =</span> label, <span class="at">fill =</span> group)) <span class="sc">+</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.65</span>) <span class="sc">+</span>                       <span class="co"># horizontal bars</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>, <span class="at">color =</span> <span class="st">"grey30"</span>) <span class="sc">+</span>  <span class="co"># break-even</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(xg_diff, <span class="dv">1</span>),</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">hjust =</span> <span class="fu">if_else</span>(xg_diff <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="sc">-</span><span class="fl">0.2</span>, <span class="fl">1.2</span>)), <span class="co"># position labels</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">fontface =</span> <span class="st">"bold"</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Overperformer"</span> <span class="ot">=</span> <span class="st">"#22c55e"</span>,</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Underperformer"</span> <span class="ot">=</span> <span class="st">"#ef4444"</span></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top 5 Over- and Underperformers"</span>,</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"xg_diff = goals − expected goals  |  ≥1 full 90-min played"</span>,</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"xg_diff (goals − xG)"</span>,</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="cn">NULL</span>,</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="cn">NULL</span></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>()</span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -410,49 +297,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="figure-6" class="level3">
 <h3 class="anchored" data-anchor-id="figure-6">Figure 6</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Expected Goals vs Actual Goals Plot</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(xg)) <span class="sc">|&gt;</span>                            <span class="co"># remove missing xG</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> xg, <span class="at">y =</span> goals, <span class="at">color =</span> position)) <span class="sc">+</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 45-degree reference line (goals = xG)</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>,</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey40"</span>, <span class="at">linewidth =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># points sized by playing time</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">size =</span> minutes_90s), <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># label players with large over/underperformance</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> . <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="fu">abs</span>(goals <span class="sc">-</span> xg) <span class="sc">&gt;</span> <span class="fl">1.5</span>),</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> player),</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">3</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.7</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># manual colors by position</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"FW"</span> <span class="ot">=</span> <span class="st">"#ef4444"</span>, <span class="st">"MF"</span> <span class="ot">=</span> <span class="st">"#3b82f6"</span>,</span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"DF"</span> <span class="ot">=</span> <span class="st">"#22c55e"</span>, <span class="st">"GK"</span> <span class="ot">=</span> <span class="st">"#f59e0b"</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># control point size range</span></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_continuous</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="fl">1.5</span>, <span class="dv">6</span>), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># labels</span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Expected Goals vs. Actual Goals"</span>,</span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Points above the line scored more than expected"</span>,</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Expected Goals (xG)"</span>,</span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Actual Goals"</span>,</span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Position"</span></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -462,24 +310,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="figure-7" class="level3">
 <h3 class="anchored" data-anchor-id="figure-7">Figure 7</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Top 10 Most Efficient Players</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>top10 <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(xg_diff)) <span class="sc">%&gt;%</span>        <span class="co"># sort by efficiency (descending)</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>)               <span class="co"># keep top 10</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(top10, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(player, xg_diff), <span class="at">y =</span> xg_diff)) <span class="sc">+</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"darkgreen"</span>) <span class="sc">+</span>   <span class="co"># bar chart</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span>                   <span class="co"># horizontal layout</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top 10 Most Efficient Players"</span>,</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Player"</span>,</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Scoring Efficiency (Goals − xG)"</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -489,51 +323,58 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="figure-8" class="level3">
 <h3 class="anchored" data-anchor-id="figure-8">Figure 8</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Team-Level Efficiency</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>team_eff <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(team) <span class="sc">%&gt;%</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_eff =</span> <span class="fu">mean</span>(xg_diff, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span>  <span class="co"># average efficiency</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(avg_eff)) <span class="sc">%&gt;%</span>                            <span class="co"># sort descending</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>)                                    <span class="co"># top 10 teams</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(team_eff, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(team, avg_eff), <span class="at">y =</span> avg_eff)) <span class="sc">+</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"purple"</span>) <span class="sc">+</span>                           <span class="co"># bar chart</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span>                                        <span class="co"># horizontal layout</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top 10 Teams by Average Scoring Efficiency"</span>,</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Team"</span>,</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Average Goals - xG"</span></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="EDAupdate_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>This bar chart shows the top 10 teams ranked by average scoring efficiency (goals − xG). Teams with higher values tend to convert chances more effectively than expected, indicating strong finishing performance. Differences across teams may reflect attacking style, player quality, or small-sample variation in tournament play. Overall, this suggests that efficiency is not only a player-level phenomenon but can also vary systematically across teams.</p>
+<p>This figure compares the total amount of shots of each player with shooting efficiency. Each plot represents a single player and they are color coded by positions. The dotted line at 0 defines the margin where players above the line overperformed their expected goals and players below the line underperformed. Looking at the plot, many of the extreme overperformers cluster in the low to mid shot range (roughly 5-15), meaning the biggest positive surprise came from players who didn’t take many shots. The players with the most shots consist entirely of forwards, which are evenly spread above and below zero. This suggests that high shot volume doesn’t necessarily guarantee outperforming xG. Lastly, midfielders and defenders cluster around 0 which is not surprising because they rarely get as many opportunities as forwards to attack the goal.</p>
+</section>
+<section id="figure-9" class="level3">
+<h3 class="anchored" data-anchor-id="figure-9">Figure 9</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDAupdate_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This correlation plot visualizes the pairwise relationships between our outcome variable and all predictor variables. The most notable finding with respect to <em>xg_diff</em> is its strong positive correlation with <em>goals_per_shot</em> (<span class="math inline">\(0.57\)</span>). This makes intuitive sense because players who convert a higher fraction of their shots directly score more goals relative to their xG. The second highest predictor is <em>shots_on_target</em> (<span class="math inline">\(0.33\)</span>), suggesting that shot accuracy is more predictive of outperforming xG than raw shot volume. Interestingly, <em>shots</em> itself only correlates at <span class="math inline">\(0.14\)</span> with our outcome variable, reinforcing that taking more shots does not guarantee overperformance.Almost every other predictor variable is near zero relative to our <em>xg_diff</em>. One notable relationship not involving <em>xg_diff</em> is the strong positive correlation (<span class="math inline">\(0.84\)</span>) between <em>shots</em> and <em>shots_on_target</em>. This suggests multicollinearity and including both variables in the model would not be optimal. Similarly, <em>goals_per_shot</em> and <em>npxg_per_shot</em> have a strong positive correlation of <span class="math inline">\(0.65\)</span>, and <em>average_shot_distance</em> negatively correlates with <em>npxg_per_shot</em> at <span class="math inline">\(-0.55\)</span>, confirming that shots taken from farther away are of low quality.</p>
 </section>
 <section id="data-summary" class="level3">
 <h3 class="anchored" data-anchor-id="data-summary">Data Summary</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary statistics for key variables</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>df <span class="sc">%&gt;%</span> </span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(goals, xg, xg_diff, age) <span class="sc">%&gt;%</span> </span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     goals              xg           xg_diff               age           
- Min.   :0.0000   Min.   :0.000   Min.   :-1.9000000   Length:485        
- 1st Qu.:0.0000   1st Qu.:0.000   1st Qu.:-0.2000000   Class :character  
- Median :0.0000   Median :0.100   Median : 0.0000000   Mode  :character  
- Mean   :0.3278   Mean   :0.327   Mean   : 0.0008247                     
- 3rd Qu.:0.0000   3rd Qu.:0.400   3rd Qu.: 0.0000000                     
- Max.   :8.0000   Max.   :6.600   Max.   : 2.8000000                     </code></pre>
+<pre><code>     goals              xg           xg_diff             age_years    
+ Min.   :0.0000   Min.   :0.000   Min.   :-1.9000000   Min.   :18.00  
+ 1st Qu.:0.0000   1st Qu.:0.000   1st Qu.:-0.2000000   1st Qu.:24.00  
+ Median :0.0000   Median :0.100   Median : 0.0000000   Median :27.00  
+ Mean   :0.3278   Mean   :0.327   Mean   : 0.0008247   Mean   :27.34  
+ 3rd Qu.:0.0000   3rd Qu.:0.400   3rd Qu.: 0.0000000   3rd Qu.:30.00  
+ Max.   :8.0000   Max.   :6.600   Max.   : 2.8000000   Max.   :39.00  
+                                                                      
+     shots         minutes_90s    xg_assist_per90   average_shot_distance
+ Min.   : 0.000   Min.   :1.000   Min.   :0.00000   Min.   : 0.90        
+ 1st Qu.: 0.000   1st Qu.:1.700   1st Qu.:0.00000   1st Qu.:11.50        
+ Median : 2.000   Median :2.800   Median :0.03000   Median :16.50        
+ Mean   : 2.691   Mean   :2.803   Mean   :0.08371   Mean   :17.44        
+ 3rd Qu.: 4.000   3rd Qu.:3.400   3rd Qu.:0.11000   3rd Qu.:22.40        
+ Max.   :29.000   Max.   :7.700   Max.   :1.44000   Max.   :46.60        
+                                                    NA's   :124          
+ npxg_per_shot   
+ Min.   :0.0100  
+ 1st Qu.:0.0400  
+ Median :0.0800  
+ Mean   :0.1094  
+ 3rd Qu.:0.1300  
+ Max.   :0.9600  
+ NA's   :124     </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Detailed dataset overview (distributions, missing values, etc.)</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">skim</span>(df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>Data summary</caption>
@@ -548,7 +389,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">37</td>
+<td style="text-align: left;">40</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -568,7 +409,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">32</td>
+<td style="text-align: left;">35</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">________________________</td>
@@ -686,7 +527,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <col style="width: 12%">
 <col style="width: 7%">
 <col style="width: 6%">
-<col style="width: 6%">
+<col style="width: 7%">
 <col style="width: 7%">
 <col style="width: 7%">
 <col style="width: 7%">
@@ -712,10 +553,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">birth_year</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">1994.63</td>
 <td style="text-align: right;">4.15</td>
-<td style="text-align: right;">1983.0</td>
+<td style="text-align: right;">1983.00</td>
 <td style="text-align: right;">1992.00</td>
 <td style="text-align: right;">1995.00</td>
 <td style="text-align: right;">1998.00</td>
@@ -725,10 +566,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">games</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">3.48</td>
 <td style="text-align: right;">1.40</td>
-<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">3.00</td>
 <td style="text-align: right;">3.00</td>
 <td style="text-align: right;">4.00</td>
@@ -738,10 +579,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">games_starts</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">2.80</td>
 <td style="text-align: right;">1.53</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">2.00</td>
 <td style="text-align: right;">3.00</td>
 <td style="text-align: right;">4.00</td>
@@ -751,10 +592,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">minutes</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">252.37</td>
 <td style="text-align: right;">131.50</td>
-<td style="text-align: right;">86.0</td>
+<td style="text-align: right;">86.00</td>
 <td style="text-align: right;">151.00</td>
 <td style="text-align: right;">249.00</td>
 <td style="text-align: right;">310.00</td>
@@ -764,10 +605,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">minutes_90s</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">2.80</td>
 <td style="text-align: right;">1.46</td>
-<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">1.70</td>
 <td style="text-align: right;">2.80</td>
 <td style="text-align: right;">3.40</td>
@@ -777,10 +618,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">goals</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.33</td>
 <td style="text-align: right;">0.80</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -790,10 +631,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">assists</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.24</td>
 <td style="text-align: right;">0.56</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -803,10 +644,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">goals_pens</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.29</td>
 <td style="text-align: right;">0.68</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -816,10 +657,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">pens_made</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.04</td>
 <td style="text-align: right;">0.25</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -829,10 +670,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">pens_att</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.05</td>
 <td style="text-align: right;">0.31</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -842,10 +683,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">cards_yellow</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.41</td>
 <td style="text-align: right;">0.61</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">1.00</td>
@@ -855,10 +696,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">cards_red</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.01</td>
 <td style="text-align: right;">0.08</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -868,10 +709,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">goals_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.12</td>
 <td style="text-align: right;">0.29</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -881,10 +722,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">assists_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.08</td>
 <td style="text-align: right;">0.19</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -894,10 +735,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">goals_assists_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.20</td>
 <td style="text-align: right;">0.37</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.33</td>
@@ -907,10 +748,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">goals_pens_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.11</td>
 <td style="text-align: right;">0.28</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -920,10 +761,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">goals_assists_pens_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.19</td>
 <td style="text-align: right;">0.36</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.33</td>
@@ -933,10 +774,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">xg</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.33</td>
 <td style="text-align: right;">0.60</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.10</td>
 <td style="text-align: right;">0.40</td>
@@ -946,10 +787,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">npxg</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.29</td>
 <td style="text-align: right;">0.46</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.10</td>
 <td style="text-align: right;">0.40</td>
@@ -959,10 +800,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">xg_assist</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.22</td>
 <td style="text-align: right;">0.36</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.10</td>
 <td style="text-align: right;">0.30</td>
@@ -972,10 +813,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">npxg_xg_assist</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.51</td>
 <td style="text-align: right;">0.67</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.10</td>
 <td style="text-align: right;">0.30</td>
 <td style="text-align: right;">0.70</td>
@@ -985,10 +826,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">xg_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.13</td>
 <td style="text-align: right;">0.20</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.05</td>
 <td style="text-align: right;">0.14</td>
@@ -998,10 +839,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">xg_assist_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.08</td>
 <td style="text-align: right;">0.14</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.03</td>
 <td style="text-align: right;">0.11</td>
@@ -1011,10 +852,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">xg_xg_assist_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.21</td>
 <td style="text-align: right;">0.26</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.03</td>
 <td style="text-align: right;">0.12</td>
 <td style="text-align: right;">0.28</td>
@@ -1024,10 +865,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">npxg_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.12</td>
 <td style="text-align: right;">0.18</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.05</td>
 <td style="text-align: right;">0.13</td>
@@ -1037,10 +878,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">npxg_xg_assist_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.20</td>
 <td style="text-align: right;">0.25</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.03</td>
 <td style="text-align: right;">0.12</td>
 <td style="text-align: right;">0.27</td>
@@ -1050,10 +891,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">xg_diff</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.44</td>
-<td style="text-align: right;">-1.9</td>
+<td style="text-align: right;">-1.90</td>
 <td style="text-align: right;">-0.20</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -1063,10 +904,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">efficiency_per90</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">-0.01</td>
 <td style="text-align: right;">0.20</td>
-<td style="text-align: right;">-1.0</td>
+<td style="text-align: right;">-1.00</td>
 <td style="text-align: right;">-0.06</td>
 <td style="text-align: right;">-0.01</td>
 <td style="text-align: right;">0.00</td>
@@ -1074,38 +915,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: left;">▁▇▂▁▁</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">np_xg_diff</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.44</td>
-<td style="text-align: right;">-1.9</td>
-<td style="text-align: right;">-0.20</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">2.70</td>
-<td style="text-align: left;">▁▆▇▁▁</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">np_efficiency_per90</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.19</td>
-<td style="text-align: right;">-1.0</td>
-<td style="text-align: right;">-0.07</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">1.60</td>
-<td style="text-align: left;">▁▇▂▁▁</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">age_years</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">27.34</td>
 <td style="text-align: right;">4.15</td>
-<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">18.00</td>
 <td style="text-align: right;">24.00</td>
 <td style="text-align: right;">27.00</td>
 <td style="text-align: right;">30.00</td>
@@ -1115,53 +930,315 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="even">
 <td style="text-align: left;">is_overperformer</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.18</td>
 <td style="text-align: right;">0.39</td>
-<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: left;">▇▁▁▁▂</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;">shots</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.69</td>
+<td style="text-align: right;">3.34</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">4.00</td>
+<td style="text-align: right;">29.00</td>
+<td style="text-align: left;">▇▂▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">shots_on_target</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.89</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">13.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">average_shot_distance</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">17.44</td>
+<td style="text-align: right;">7.24</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">11.50</td>
+<td style="text-align: right;">16.50</td>
+<td style="text-align: right;">22.40</td>
+<td style="text-align: right;">46.60</td>
+<td style="text-align: left;">▂▇▅▂▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">goals_per_shot</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.21</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">npxg_per_shot</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: right;">0.74</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">0.96</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Regression: scoring efficiency on age and position</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(xg_diff <span class="sc">~</span> age_years <span class="sc">+</span> position, <span class="at">data =</span> df)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># View regression results</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-Call:
-lm(formula = xg_diff ~ age_years + position, data = df)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--1.92267 -0.16451 -0.00782  0.05080  2.66473 
-
-Coefficients:
-            Estimate Std. Error t value Pr(&gt;|t|)   
-(Intercept)  0.28016    0.13804   2.030  0.04295 * 
-age_years   -0.00630    0.00494  -1.275  0.20286   
-positionMF  -0.16446    0.05435  -3.026  0.00261 **
-positionDF  -0.13567    0.05174  -2.622  0.00902 **
-positionGK  -0.08794    0.08305  -1.059  0.29021   
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Residual standard error: 0.4386 on 480 degrees of freedom
-Multiple R-squared:  0.02496,   Adjusted R-squared:  0.01683 
-F-statistic: 3.072 on 4 and 480 DF,  p-value: 0.01622</code></pre>
-</div>
-</div>
-
-
 </section>
+</section>
+<section id="modelingmethodology" class="level2">
+<h2 class="anchored" data-anchor-id="modelingmethodology">Modeling(Methodology)</h2>
+<p>We model <em>xg_diff</em> (scoring efficiency computed as goals - expected goals) as a function of player age, position, playing time, playmaking context, shot volume, shot distance, and shot quality. We excluded goalkeepers from all models as they are not meaningful for scoring analysis. We also exclude <em>goals_per_shot</em> and <em>shots_on_target</em> from predictors due to the high correlation we found from the correlation matrix. All three models (OLS, Ridge, LASSO) are evaluated using 10-fold cross-validation with both RMSE and MAE as performance metrics.</p>
+<p>Our model is specified as:</p>
+<p><span class="math display">\[xg\_diff = \beta_0 + \beta_1(age\_years) + \beta_2(position) + \beta_3(minutes\_90s) + \\\beta_4(xg\_assist\_per90) + \beta_5(shots) + \beta_6(average\_shot\_distance) + \\\beta_7(npxg\_per\_shot) + \varepsilon\]</span></p>
+<section id="ols" class="level3">
+<h3 class="anchored" data-anchor-id="ols">OLS</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>OLS Coefficients (R² = 0.048)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">term</th>
+<th style="text-align: right;">estimate</th>
+<th style="text-align: right;">std.error</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.1178</td>
+<td style="text-align: right;">0.2134</td>
+<td style="text-align: right;">0.5521</td>
+<td style="text-align: right;">0.5812</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">age_years</td>
+<td style="text-align: right;">-0.0096</td>
+<td style="text-align: right;">0.0066</td>
+<td style="text-align: right;">-1.4522</td>
+<td style="text-align: right;">0.1473</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">positionMF</td>
+<td style="text-align: right;">-0.1752</td>
+<td style="text-align: right;">0.0738</td>
+<td style="text-align: right;">-2.3732</td>
+<td style="text-align: right;">0.0182</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">positionDF</td>
+<td style="text-align: right;">-0.1346</td>
+<td style="text-align: right;">0.0804</td>
+<td style="text-align: right;">-1.6746</td>
+<td style="text-align: right;">0.0949</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">minutes_90s</td>
+<td style="text-align: right;">0.0351</td>
+<td style="text-align: right;">0.0213</td>
+<td style="text-align: right;">1.6489</td>
+<td style="text-align: right;">0.1001</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">xg_assist_per90</td>
+<td style="text-align: right;">0.0082</td>
+<td style="text-align: right;">0.1984</td>
+<td style="text-align: right;">0.0413</td>
+<td style="text-align: right;">0.9671</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">shots</td>
+<td style="text-align: right;">0.0070</td>
+<td style="text-align: right;">0.0101</td>
+<td style="text-align: right;">0.6965</td>
+<td style="text-align: right;">0.4866</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">average_shot_distance</td>
+<td style="text-align: right;">0.0048</td>
+<td style="text-align: right;">0.0046</td>
+<td style="text-align: right;">1.0504</td>
+<td style="text-align: right;">0.2943</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">npxg_per_shot</td>
+<td style="text-align: right;">0.3476</td>
+<td style="text-align: right;">0.2736</td>
+<td style="text-align: right;">1.2704</td>
+<td style="text-align: right;">0.2048</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The OLS model returns an <span class="math inline">\(R^2\)</span> of <span class="math inline">\(0.048\)</span>, meaning our predictors explain about <span class="math inline">\(4.8%\)</span> of the variance in <em>xg_diff</em>. This is extremely low but not too surprising as it shows scoring efficiency is very noisy and difficult to predict from player-level statistics alone. <em>positionMF</em> was our only statistically significant coefficient indicating that midfielders on average score approximately 0.17 goals less than their xG relative to forwards with all other variables held constant. <em>positionDF</em> is also marginally significant.</p>
+</section>
+<section id="ridge" class="level3">
+<h3 class="anchored" data-anchor-id="ridge">Ridge</h3>
+<p>Ridge regression applies L2 regularization which penalizes the sum of squares coefficients to shrink all predictors towards zero without eliminating any. The optimal lambda selected by cross-validation is 0.3588 indicating moderate regularization strength.</p>
+</section>
+<section id="lasso" class="level3">
+<h3 class="anchored" data-anchor-id="lasso">LASSO</h3>
+<p>LASSO regression applies L1 regularization which performs automatic variable selection by shrinking selected coefficients to zero.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>LASSO Coefficients (lambda = 0.004)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;">Coefficient</th>
+<th style="text-align: left;">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">npxg_per_shot</td>
+<td style="text-align: right;">0.2735</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">positionMF</td>
+<td style="text-align: right;">-0.1514</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">positionDF</td>
+<td style="text-align: right;">-0.1139</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">minutes_90s</td>
+<td style="text-align: right;">0.0304</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">age_years</td>
+<td style="text-align: right;">-0.0086</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">shots</td>
+<td style="text-align: right;">0.0080</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">average_shot_distance</td>
+<td style="text-align: right;">0.0034</td>
+<td style="text-align: left;">Retained</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">positionGK</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: left;">Zeroed Out</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">xg_assist_per90</td>
+<td style="text-align: right;">0.0000</td>
+<td style="text-align: left;">Zeroed Out</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>With an optimal lamdba of <span class="math inline">\(0.004\)</span>, LASSO zeroed out <em>positionGK</em> and <em>xg_assist_per90</em>. The first variable makes sense as goalkeepers do not contribute to scoring goals but the creativity metric being zeroed out is a surprise. <em>np_xg_per_shot</em> is retained with the largest magnitude coefficient (<span class="math inline">\(0.2735\)</span>). The two position dummies (<em>positionMF</em>, <em>positionDF</em>) are retained and have negative coefficients, reinforcing that non-forward positions tend to underperform their xG. The remaining retained variables (<em>minutes_90s</em>, <em>age_years</em>, <em>shots</em>, <em>average_shot_distance</em>) all have very small coefficients, suggesting their contribution is minimal but non-negligible after regularization.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>10-Fold CV Performance Across Models</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">CV RMSE</th>
+<th style="text-align: right;">CV MAE</th>
+<th style="text-align: right;">Optimal Lambda</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">OLS</td>
+<td style="text-align: right;">0.5122</td>
+<td style="text-align: right;">0.3297</td>
+<td style="text-align: right;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ridge</td>
+<td style="text-align: right;">0.5093</td>
+<td style="text-align: right;">0.3262</td>
+<td style="text-align: right;">0.3588</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">LASSO</td>
+<td style="text-align: right;">0.5110</td>
+<td style="text-align: right;">0.3287</td>
+<td style="text-align: right;">0.0040</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Ridge regression receives the lowest CV RMSE and CV MAE, making it the best performing model on both metrics. However, the difference across all three models are very small indicating that regularization provides little benefit over the standard OLS. This likely reflects the fact that our predictors are already weakly correlated with <em>xg_diff</em> so there is little to gain from shrinkage. Overall, while Ridge edges out the other methods, all three models suggest that the selected predictors have limited power in explaining scoring efficiency, and future modeling could benefit from additional data sources.</p>
+</section>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>The exploratory analysis shows that most players had an `xg_diff` close to zero, meaning most players scored near their expected goals. However, a small number of players strongly overperformed or underperformed. Position appeared to matter more than age or raw shot volume. Forwards had the widest spread in scoring efficiency and included most of the top overperformers, while midfielders and defenders tended to cluster closer to zero or slightly below zero.<br>
+<br>
+The correlation matrix showed that `goals_per_shot` had the strongest correlation with `xg_diff`, followed by `shots_on_target`. However, these variables were excluded from the final models because they are closely related to the outcome or highly correlated with other shooting variables. Other predictors, including age, minutes, shots, and average shot distance, had weak relationships with scoring efficiency.<br>
+<br>
+The OLS model had an \(R^2\) of 0.048, meaning the model explained only about 4.8% of the variation in scoring efficiency. This suggests that the selected player-level variables have limited explanatory power. Ridge regression had the best cross-validated RMSE and MAE, but the difference between OLS, Ridge, and LASSO was very small. Overall, the modeling results suggest that scoring efficiency in a short tournament is difficult to predict using only basic player and shooting statistics.</p>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
+<p>Our analysis suggests that scoring efficiency in the 2022 FIFA World Cup is difficult to predict using basic player-level and shooting statistics alone. Although some variables are related to overperformance, most predictors have weak relationships with `xg_diff`, which supports the idea that finishing above or below expected goals is highly noisy in a short tournament setting. The distribution of `xg_diff` shows that most players finished close to their expected goals, while only a small number of players strongly overperformed or underperformed.<br>
+<br>
+Position appears to be one of the most meaningful factors in our analysis. Forwards had the widest spread in scoring efficiency and were more likely to appear among the strongest overperformers. This makes sense because forwards take more shots and are usually the primary goal-scoring players on their teams. Midfielders and defenders tended to cluster closer to zero or slightly below zero, suggesting that they generally scored closer to or below expectation. Goalkeepers were not meaningful for this research question because they rarely produce scoring opportunities, so excluding them from the modeling stage was appropriate.<br>
+<br>
+The relationship between age and scoring efficiency was weak. Players of different ages appeared on both sides of the overperformance line, which suggests that age alone is not a strong predictor of whether a player will score more than expected. Similarly, total shot volume was not strongly associated with overperforming xG. Some players with many shots still underperformed, while some of the largest overperformers came from low or medium shot volume. This suggests that simply taking more shots does not guarantee better finishing efficiency.<br>
+<br>
+The correlation matrix gave more useful insight into which variables were most connected to scoring efficiency. `goals_per_shot` had the strongest positive correlation with `xg_diff`, which is intuitive because players who score on a higher percentage of their shots are more likely to outperform their xG. `shots_on_target` was also positively related to `xg_diff`, suggesting that shot accuracy matters more than raw shot quantity. However, we excluded `goals_per_shot` and `shots_on_target` from the final models because they are highly related to the outcome or strongly correlated with other shooting variables, which could create multicollinearity or make the model less interpretable.<br>
+<br>
+The modeling results reinforce the main finding from the EDA: scoring efficiency is difficult to explain with the variables available in this dataset. The OLS model had an \(R^2\) of only 0.048, meaning the predictors explained about 4.8% of the variation in `xg_diff`. Ridge regression performed slightly better than OLS and LASSO based on cross-validated RMSE and MAE, but the differences between the three models were very small. This indicates that regularization did not substantially improve predictive performance. LASSO retained variables such as `npxg_per_shot`, position, minutes, age, shots, and average shot distance, but most coefficients were small, again suggesting limited explanatory power.<br>
+<br>
+One important limitation of this project is that the World Cup is a small and short tournament. Many players have limited minutes and few shots, so one goal or one missed chance can greatly change a player’s `xg_diff`. This makes scoring efficiency much more unstable than it would be across a full club season. Another limitation is that xG models are not perfect. They estimate chance quality based on available information, but they may not fully capture defensive pressure, goalkeeper positioning, shot technique, tactical context, or game state. Also, our dataset is player-level rather than shot-level, so we lose detailed information about each individual chance.<br>
+<br>
+Future work could improve this analysis by using shot-level data instead of aggregated player-level statistics. Shot-level data would allow us to include variables such as shot angle, body part used, defensive pressure, pass type, match situation, and goalkeeper position. It would also be useful to compare World Cup performance with players’ club performance across a full season to see whether overperformance in the tournament reflects true finishing skill or short-term randomness. Finally, adding team-level variables such as possession, attacking style, and strength of opponents could help explain why some players receive higher-quality chances than others.<br>
+<br>
+Overall, our results suggest that scoring efficiency is not easily predicted from simple player statistics. Position and shooting quality provide some insight, but most of the variation in `xg_diff` appears to come from randomness, small sample size, and contextual factors not captured in the dataset. This supports the idea that xG overperformance in a short tournament should be interpreted carefully rather than treated as a stable measure of finishing ability.</p>
+</section>
+<section id="codebook" class="level2">
+<h2 class="anchored" data-anchor-id="codebook">Codebook</h2>
+<p>The codebook can be found in our GitHub in our data/ folder: <a href="https://github.com/zibojerryxu/Math-244-final-project-Team-GG/blob/main/data/dataset_readme.md" class="uri">https://github.com/zibojerryxu/Math-244-final-project-Team-GG/blob/main/data/dataset_readme.md</a></p>
+
+
 </section>
 </section>
 
