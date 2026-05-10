@@ -1,3 +1,10 @@
+.DS_Store
+*.tex
+*.aux
+*.log
+*.out
+*_files/
+.Rproj.user/
+
 /.quarto/
 **/*.quarto_ipynb
-.DS_Store
