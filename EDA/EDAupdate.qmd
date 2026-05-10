@@ -1,9 +1,10 @@
 ---
-title: "FIFA 2022 Scoring Efficiency Analysis"
-format: html
+title: "FIFA World Cup 2022 Scoring Efficiency Analysis - EDA"
+format: pdf
+author: "Gaku Aihara and Jerry Xu"
 editor: visual
 execute:
-  echo: true
+  echo: false
   warning: false
   message: false
 ---
@@ -11,6 +12,9 @@ execute:
 # Exploratory Data Analysis
 
 ```{r}
+#| echo: FALSE
+#| include: FALSE
+
 # libraries
 library(tidyverse)
 library(janitor)
@@ -19,17 +23,34 @@ library(dplyr)
 library(readr)
 library(forcats)
 library(skimr)
+library(rvest)
+library(polite)
+library(corrplot)
+library(knitr)
 
 # load data
-df <- read_csv(
-  "/Users/xuzibo/Desktop/Math244/final/Math-244-final-project-Team-GG/data/player_stats.csv",
+df1 <- read_csv(
+  "player_stats.csv",
   show_col_types = FALSE
 ) %>%
   clean_names()
 
-# preview 
-# glimpse(df)
+df2 <- read_csv(
+  "player_shooting.csv",
+  show_col_types = FALSE
+) %>%
+  clean_names()
 ```
+
+## Introduction
+
+This project studies scoring efficiency in the 2022 FIFA World Cup. Specifically, we ask whether player-level statistics such as position, age, playing time, shot volume, and shot quality can explain why some players score more or fewer goals than expected. Our main outcome variable is \`xg_diff\`, defined as actual goals minus expected goals. A positive value means a player overperformed their xG, while a negative value means they underperformed.\
+\
+This question is important because expected goals are widely used in soccer analytics to evaluate player performance, but short tournaments like the World Cup may contain a large amount of randomness. By comparing exploratory visualizations with OLS, Ridge, and LASSO models, we evaluate whether scoring efficiency can be explained by basic player and shooting statistics.
+
+## Data
+
+Our primary dataset was gathered from Kaggle which originally gathered data from FBRef, a widely used source for soccer statistics. We had initially tried scraping from FBRef itself but the licensing would not allow us to. The dataset contains 680 player-level observations from the 2022 FIFA World Cup, including key variables such as goals, expected goals, age, position, team, and a variety of per-90 performance metrics. We supplemented this with another Kaggle dataset that contained shooting-specific information such as shot volume, shots on target, average shot distance, and non-penalty xG per shot. These additional variables allow us to better capture the quality and quantity of a player’s scoring opportunities, not just their outcomes.
 
 ## Exploring the Data
 
@@ -45,27 +66,19 @@ This outcome variable measures how much a player converts relative to the qualit
 
 We would expect forwards to show high variance while other positions to cluster near zero. We would also expect younger, more creative players to slightly overperform.
 
-**What are your key explanatory variables?**\
-– goals: total goals scored\
-- xg: expected goals\
-- age_numeric: player age\
-- position: player position (FW, MF, DF, GK)
-
-\- xG_assist_per90: playmaking context
-
-\- minutes_90s: measurement of playing time\
-- team: national team
+**What are your key explanatory variables?** - *age_years*: player age - *position*: player position (FW, MF, DF, GK) - *xG_assist_per90*: expected goals assisted per 90 minutes, capturing a players playmaking contributions normalized for playing time. - *minutes_90s*: measurement of the amount of playing time a player gets relative to games - *shots*: total number of shot attempts a player has made throughout the tournament - *shots_on_target*: total number of shot attempts by a player that was within the goal frame - *goals_per_shot*: the ratio of goals scored to total shots taken - *average_shot_distance*: the average shot distance of all the shots taken by a single player - *np_xg_per_shot*: describes the quality of the shot by measuring the non-penalty expected goal per shot
 
 ## Data Cleaning and Transformation
 
 ```{r}
+#| echo: FALSE
+#| include: FALSE
+
 # Clean data and create key variables
-df <- df %>%
+df <- df1 %>%
   mutate(
     xg_diff = goals - xg,                          # scoring efficiency
     efficiency_per90 = goals_per90 - xg_per90,     # per 90 efficiency
-    np_xg_diff = goals_pens - npxg,                # non-penalty efficiency
-    np_efficiency_per90 = (goals_pens / minutes_90s) - (npxg / minutes_90s),
     age_years = as.integer(str_extract(age, "^[0-9]+")),  # extract numeric age
     is_overperformer = if_else(xg_diff > 0, 1L, 0L),      # binary indicator
     position = factor(position, levels = c("FW", "MF", "DF", "GK"))
@@ -73,23 +86,47 @@ df <- df %>%
   filter(minutes_90s >= 1) %>%                    # remove low playing time
   drop_na(xg, goals, position, age_years)         # drop missing values
 
+
+
+```
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+# Variables we want to extract from second dataset
+shooting <- df2 %>%
+  select(
+    player,
+    team,
+    shots,
+    shots_on_target,
+    average_shot_distance,
+    goals_per_shot,
+    npxg_per_shot
+  )
+
+df <- df %>%
+  left_join(shooting, by = c("player", "team"))
 ```
 
 The raw dataset contained 680 player observations from the 2022 FIFA World Cup.
 
-**Filtering:** We removed players with fewer than 1 full 90-minute equivalent play time and also dropped rows with missing values in xg, goals, position, and age_years.
+**Filtering:** We removed players with fewer than 1 full 90-minute equivalent play time and also dropped rows with missing values in xg, goals, position, and age_years. After doing this, we remained with 485 observations.
 
-**New variables:** Our primary outcome variable, xg_diff, was created by subtracting a player's xG from their actual goals. A positive value indicates overperformance while a negative value indicates underperformance. We also created efficiency_per90 as the per-90 rate version of this difference which adjusts for playing time differences across players. The non-penalty version np_xg_diff was additionally created to remove the distorting effects of penalties. Lastly, the is_overperformer variable was created taking value 1 if a player scored more than their xG and 0 otherwise.
+**New variables:** Our primary outcome variable, xg_diff, was created by subtracting a player's xG from their actual goals. A positive value indicates overperformance while a negative value indicates underperformance. Lastly, the is_overperformer variable was created taking value 1 if a player scored more than their xG and 0 otherwise.
 
 **Age-parsing:** The age variable was stored as a character string "years-days" format so we extracted only the years as an integer.
 
 ### Figure 1
 
 ```{r}
+#| echo: FALSE
+
 # Distribution of Efficiency
 ggplot(df, aes(x = xg_diff)) +
-  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) + # histogram
-  geom_vline(xintercept = 0, linetype = "dashed") +            #break even line
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) + 
+  geom_vline(xintercept = 0, linetype = "dashed") +            
   labs(
     title = "Distribution of Scoring Efficiency (Goals - xG)",
     x = "xG Difference",
@@ -103,6 +140,8 @@ The distribution shows that most players cluster around zero, indicating that pl
 ### Figure 2
 
 ```{r}
+#| echo: FALSE
+
 # Efficiency by Position (BOXPLOT)
 ggplot(df, aes(x = position, y = xg_diff, fill = position)) +
   geom_boxplot() +
@@ -119,6 +158,8 @@ This boxplot shows that forwards tend to have a wider spread and slightly higher
 ### Figure 3
 
 ```{r}
+#| echo: FALSE
+
 # Total Goals vs Total xG by Position Plot
 df |>
   group_by(position) |>
@@ -127,12 +168,12 @@ df |>
     Total_xG    = sum(xg, na.rm = TRUE)       # total expected goals
   ) |>
   pivot_longer(
-    cols = c(Total_Goals, Total_xG),          # reshape for plotting
+    cols = c(Total_Goals, Total_xG),          
     names_to = "metric",
     values_to = "value"
   ) |>
   ggplot(aes(x = position, y = value, fill = metric)) +
-  geom_col(position = "dodge", width = 0.6) + # side-by-side bars
+  geom_col(position = "dodge", width = 0.6) + 
   scale_fill_manual(values = c(
     "Total_Goals" = "#3b82f6",
     "Total_xG"    = "#94a3b8"
@@ -151,17 +192,19 @@ This Bar Chart reveals that midfielders and defenders actually underperform thei
 ### Figure 4
 
 ```{r}
+#| echo: FALSE
+
 #Age vs Efficiency
 
 # Plot age against scoring efficiency
 ggplot(df, aes(x = age_years, y = xg_diff)) +
-  geom_point(alpha = 0.5) +                              # scatterplot points
+  geom_point(alpha = 0.5) +                              
   geom_smooth(method = "lm", se = FALSE, color = "red", formula = y ~ x) + # regression line
   labs(title = "Age vs Scoring Efficiency",
        x = "Age",
        y = "Scoring Efficiency (Goals − xG)") +
-  scale_x_continuous(breaks = seq(15, 45, by = 5)) +    # x-axis labels
-  theme_minimal()                                       # clean theme
+  scale_x_continuous(breaks = seq(15, 45, by = 5)) +   
+  theme_minimal()                                       
 ```
 
 This suggests that age is not a strong predictor of scoring efficiency in this dataset, as points are widely scattered across all ages. Both younger and older players can either overperform or underperform their xG. This suggests that age is not a strong predictor of scoring efficiency in this dataset.
@@ -169,6 +212,8 @@ This suggests that age is not a strong predictor of scoring efficiency in this d
 ### Figure 5
 
 ```{r}
+#| echo: FALSE
+
 # Top 5 over and under performers plot
 top5_over  <- df |> 
   slice_max(order_by = xg_diff, n = 5) |>        # highest xg_diff
@@ -180,15 +225,15 @@ top5_under <- df |>
 
 bind_rows(top5_over, top5_under) |>
   mutate(
-    label = paste0(player, " (", team, ")"),     # player label
-    label = fct_reorder(label, xg_diff)          # order by performance
+    label = paste0(player, " (", team, ")"),     
+    label = fct_reorder(label, xg_diff)          
   ) |>
   ggplot(aes(x = xg_diff, y = label, fill = group)) +
-  geom_col(width = 0.65) +                       # horizontal bars
-  geom_vline(xintercept = 0, linewidth = 0.8, color = "grey30") +  # break-even
+  geom_col(width = 0.65) +                       
+  geom_vline(xintercept = 0, linewidth = 0.8, color = "grey30") +  
   geom_text(
     aes(label = round(xg_diff, 1),
-        hjust = if_else(xg_diff > 0, -0.2, 1.2)), # position labels
+        hjust = if_else(xg_diff > 0, -0.2, 1.2)), 
     size = 3.5, fontface = "bold"
   ) +
   scale_fill_manual(values = c(
@@ -215,6 +260,8 @@ This horizontal bar chart highlights the players who differentiated the greatest
 ### Figure 6
 
 ```{r}
+#| echo: FALSE
+
 # Expected Goals vs Actual Goals Plot
 df |>
   filter(!is.na(xg)) |>                            # remove missing xG
@@ -261,14 +308,16 @@ This xG vs Actual goals scatter plot provides a broader view of player efficienc
 ### Figure 7
 
 ```{r}
+#| echo: FALSE
+
 # Top 10 Most Efficient Players
 top10 <- df %>%
   arrange(desc(xg_diff)) %>%        # sort by efficiency (descending)
   slice_head(n = 10)               # keep top 10
 
 ggplot(top10, aes(x = reorder(player, xg_diff), y = xg_diff)) +
-  geom_col(fill = "darkgreen") +   # bar chart
-  coord_flip() +                   # horizontal layout
+  geom_col(fill = "darkgreen") +   
+  coord_flip() +                   
   labs(
     title = "Top 10 Most Efficient Players",
     x = "Player",
@@ -282,58 +331,324 @@ This bar chart highlights the players who most exceeded their expected goals dur
 ### Figure 8
 
 ```{r}
-# Team-Level Efficiency
+#| echo: FALSE
 
-team_eff <- df %>%
-  group_by(team) %>%
-  summarize(avg_eff = mean(xg_diff, na.rm = TRUE)) %>%  # average efficiency
-  arrange(desc(avg_eff)) %>%                            # sort descending
-  slice_head(n = 10)                                    # top 10 teams
-
-ggplot(team_eff, aes(x = reorder(team, avg_eff), y = avg_eff)) +
-  geom_col(fill = "purple") +                           # bar chart
-  coord_flip() +                                        # horizontal layout
+df %>%
+  filter(position != "GK", !is.na(shots), shots > 0) %>%
+  ggplot(aes(x = shots, y = xg_diff, color = position)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  geom_smooth(method = "lm", se = FALSE, color = "black",
+              formula = y ~ x, linewidth = 0.8) +
+  scale_color_manual(values = c(
+    "FW" = "#ef4444", "MF" = "#3b82f6", "DF" = "#22c55e"
+  )) +
   labs(
-    title = "Top 10 Teams by Average Scoring Efficiency",
-    x = "Team",
-    y = "Average Goals - xG"
+    title    = "Shot Volume vs. Scoring Efficiency",
+    subtitle = "Players above the dashed line outperformed their xG",
+    x        = "Total Shots",
+    y        = "xg_diff (goals − xG)",
+    color    = "Position"
   ) +
-  theme_minimal()
-
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold"))
 ```
 
-This bar chart shows the top 10 teams ranked by average scoring efficiency (goals − xG). Teams with higher values tend to convert chances more effectively than expected, indicating strong finishing performance. Differences across teams may reflect attacking style, player quality, or small-sample variation in tournament play. Overall, this suggests that efficiency is not only a player-level phenomenon but can also vary systematically across teams.
+This figure compares the total amount of shots of each player with shooting efficiency. Each plot represents a single player and they are color coded by positions. The dotted line at 0 defines the margin where players above the line overperformed their expected goals and players below the line underperformed. Looking at the plot, many of the extreme overperformers cluster in the low to mid shot range (roughly 5-15), meaning the biggest positive surprise came from players who didn't take many shots. The players with the most shots consist entirely of forwards, which are evenly spread above and below zero. This suggests that high shot volume doesn't necessarily guarantee outperforming xG. Lastly, midfielders and defenders cluster around 0 which is not surprising because they rarely get as many opportunities as forwards to attack the goal.
+
+### Figure 9
+
+```{r, fig.width=8, fig.height=8}
+#| echo: FALSE
+
+# Select numeric predictors used in modeling
+numeric_vars <- df %>%
+  filter(position != "GK") %>%
+  drop_na( xg_diff,
+    age_years,
+    minutes_90s,
+    xg_assist_per90,
+    shots,
+    average_shot_distance,
+    npxg_per_shot) %>%
+  select(
+    xg_diff,
+    age_years,
+    minutes_90s,
+    xg_assist_per90,
+    shots,
+    shots_on_target,
+    average_shot_distance,
+    goals_per_shot,
+    npxg_per_shot
+  )
+
+# Compute correlation matrix
+cor_matrix <- cor(numeric_vars, use = "complete.obs")
+
+# Plot heatmap
+corrplot(
+  cor_matrix,
+  method      = "color",
+  type        = "upper",
+  addCoef.col = "black",
+  number.cex  = 0.6,        # shrink the coefficient numbers
+  tl.col      = "black",
+  tl.srt      = 45,
+  tl.cex      = 0.8,        # shrink the variable name labels
+  col         = colorRampPalette(c("#ef4444", "white", "#3b82f6"))(200),
+  title       = "Correlation Matrix of Key Predictors",
+  mar         = c(0, 0, 2, 0)
+)
+```
+
+This correlation plot visualizes the pairwise relationships between our outcome variable and all predictor variables. The most notable finding with respect to *xg_diff* is its strong positive correlation with *goals_per_shot* ($0.57$). This makes intuitive sense because players who convert a higher fraction of their shots directly score more goals relative to their xG. The second highest predictor is *shots_on_target* ($0.33$), suggesting that shot accuracy is more predictive of outperforming xG than raw shot volume. Interestingly, *shots* itself only correlates at $0.14$ with our outcome variable, reinforcing that taking more shots does not guarantee overperformance.Almost every other predictor variable is near zero relative to our *xg_diff*. One notable relationship not involving *xg_diff* is the strong positive correlation ($0.84$) between *shots* and *shots_on_target*. This suggests multicollinearity and including both variables in the model would not be optimal. Similarly, *goals_per_shot* and *npxg_per_shot* have a strong positive correlation of $0.65$, and *average_shot_distance* negatively correlates with *npxg_per_shot* at $-0.55$, confirming that shots taken from farther away are of low quality.
 
 ### Data Summary
 
 ```{r}
+#| echo: FALSE
+
 # Summary statistics for key variables
 df %>% 
-  select(goals, xg, xg_diff, age) %>% 
+  select(goals, xg, xg_diff, age_years, shots, minutes_90s, xg_assist_per90, average_shot_distance, npxg_per_shot) %>% 
   summary()
 
-# Detailed dataset overview (distributions, missing values, etc.)
+# Detailed dataset overview 
 skim(df)
 
 ```
 
-```{r}
-# Best model: non-penalty scoring efficiency with opportunity controls
+```{r load library}
 
-model_best <- lm(
-  np_xg_diff ~ age_years + position + minutes_90s + shots + xg_assist_per90,
-  data = df %>%
-    filter(position != "GK") %>%
-    drop_na(np_xg_diff, age_years, position, minutes_90s, shots, xg_assist_per90)
-)
+#| echo: FALSE 
+#| include: FALSE
 
-summary(model_best)
+library(tidyverse) 
+library(janitor) 
+library(readr) 
+library(glmnet) 
+library(knitr) 
+library(caret) 
+library(broom)
 ```
 
-Our best model predicts non-penalty scoring efficiency using age, position, playing time, shot volume, and playmaking context.
+```{r}
+#| echo: FALSE
+#| include: FALSE
 
-`np_xg_diff = β0 + β1(age_years) + β2(position) + β3(minutes_90s) + β4(shots) + β5(xg_assist_per90) + ε`
+# load data
+df1 <- read_csv(
+  "player_stats.csv",
+  show_col_types = FALSE
+) %>%
+  clean_names()
 
-We use `np_xg_diff` instead of raw `xg_diff` because penalties can distort scoring efficiency. This model also removes goalkeepers because they are not meaningful for scoring analysis. `minutes_90s` controls for playing time, while `shots` controls for scoring opportunity. `xg_assist_per90` adds attacking context because creative players may be involved in dangerous chances even if they are not always the final shooter.
+df2 <- read_csv(
+  "player_shooting.csv",
+  show_col_types = FALSE
+) %>%
+  clean_names()
 
-This model is stronger than the original age-and-position model because it controls for both opportunity and role. A player with high efficiency after controlling for shots and minutes is more likely to be a true overperformer rather than someone benefiting from small sample randomness.
+# rebuild df 
+df <- df1%>%
+  mutate(
+    xg_diff = goals - xg,
+    efficiency_per90 = goals_per90 - xg_per90,
+    age_years = as.integer(str_extract(age, "^[0-9]+")),
+    is_overperformer = if_else(xg_diff > 0, 1L, 0L),
+    position = factor(position, levels = c("FW", "MF", "DF", "GK"))
+  ) %>%
+  filter(minutes_90s >= 1) %>%
+  drop_na(xg, goals, position, age_years)
+
+shooting <- df2%>%
+  select(player, team, shots, shots_on_target,
+         average_shot_distance, goals_per_shot, npxg_per_shot)
+
+df <- df %>%
+  left_join(shooting, by = c("player", "team"))
+```
+
+## Modeling(Methodology)
+
+We model *xg_diff* (scoring efficiency computed as goals - expected goals) as a function of player age, position, playing time, playmaking context, shot volume, shot distance, and shot quality. We excluded goalkeepers from all models as they are not meaningful for scoring analysis. We also exclude *goals_per_shot* and *shots_on_target* from predictors due to the high correlation we found from the correlation matrix. All three models (OLS, Ridge, LASSO) are evaluated using 10-fold cross-validation with both RMSE and MAE as performance metrics.
+
+Our model is specified as:
+
+$$xg\_diff = \beta_0 + \beta_1(age\_years) + \beta_2(position) + \beta_3(minutes\_90s) + \\\beta_4(xg\_assist\_per90) + \beta_5(shots) + \beta_6(average\_shot\_distance) + \\\beta_7(npxg\_per\_shot) + \varepsilon$$
+
+### OLS
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+# Prepare modeling dataset: exclude GK, drop rows with NA in any predictor
+model_df <- df %>%
+  filter(position != "GK") %>%
+  drop_na(xg_diff, age_years, position, minutes_90s,
+          xg_assist_per90, shots, average_shot_distance, npxg_per_shot)
+
+# Model matrix for Ridge and LASSO (no intercept column)
+X <- model.matrix(
+  xg_diff ~ age_years + position + minutes_90s +
+    xg_assist_per90 + shots + average_shot_distance + npxg_per_shot,
+  data = model_df
+)[, -1]
+
+y <- model_df$xg_diff
+```
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+# Fit OLS and get 10-fold CV RMSE manually
+ols_model <- lm(
+  xg_diff ~ age_years + position + minutes_90s +
+    xg_assist_per90 + shots + average_shot_distance + npxg_per_shot,
+  data = model_df
+)
+
+# 10-fold CV for OLS (RMSE and MAE)
+set.seed(67)
+folds <- sample(rep(1:10, length.out = nrow(model_df)))
+
+ols_cv_results <- sapply(1:10, function(k) {
+  train_data <- model_df[folds != k, ]
+  test_data  <- model_df[folds == k, ]
+  fit  <- lm(xg_diff ~ age_years + position + minutes_90s +
+               xg_assist_per90 + shots + average_shot_distance + npxg_per_shot,
+             data = train_data)
+  pred <- predict(fit, newdata = test_data)
+  c(mse = mean((test_data$xg_diff - pred)^2),
+    mae = mean(abs(test_data$xg_diff - pred)))
+})
+
+ols_rmse <- sqrt(mean(ols_cv_results["mse", ]))
+ols_mae  <- mean(ols_cv_results["mae", ])
+```
+
+```{r}
+#| echo: FALSE
+
+# OLS Summary
+ols_summary <- summary(ols_model)
+
+tidy(ols_model) %>%
+  mutate(across(where(is.numeric), ~round(., 4))) %>%
+  kable(caption = paste0("OLS Coefficients (R\U00B2 = ",
+                         round(ols_summary$r.squared, 3), ")"))
+```
+
+The OLS model returns an $R^2$ of $0.048$, meaning our predictors explain about $4.8%$ of the variance in *xg_diff*. This is extremely low but not too surprising as it shows scoring efficiency is very noisy and difficult to predict from player-level statistics alone. *positionMF* was our only statistically significant coefficient indicating that midfielders on average score approximately 0.17 goals less than their xG relative to forwards with all other variables held constant. *positionDF* is also marginally significant.
+
+### Ridge
+
+Ridge regression applies L2 regularization which penalizes the sum of squares coefficients to shrink all predictors towards zero without eliminating any. The optimal lambda selected by cross-validation is 0.3588 indicating moderate regularization strength.
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+set.seed(67)
+# RMSE for Ridge
+ridge_cv     <- cv.glmnet(X, y, alpha = 0, nfolds = 10)
+ridge_lambda <- ridge_cv$lambda.min
+ridge_rmse   <- sqrt(min(ridge_cv$cvm))
+
+# MAE for Ridge
+set.seed(67)
+ridge_cv_mae <- cv.glmnet(X, y, alpha = 0, nfolds = 10, type.measure = "mae")
+ridge_mae    <- min(ridge_cv_mae$cvm)
+```
+
+### LASSO
+
+LASSO regression applies L1 regularization which performs automatic variable selection by shrinking selected coefficients to zero.
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+set.seed(67)
+# RMSE for LASSO
+lasso_cv     <- cv.glmnet(X, y, alpha = 1, nfolds = 10)
+lasso_lambda <- lasso_cv$lambda.min
+lasso_rmse   <- sqrt(min(lasso_cv$cvm))
+
+# MAE for LASSO
+set.seed(67)
+lasso_cv_mae <- cv.glmnet(X, y, alpha = 1, nfolds = 10, type.measure = "mae")
+lasso_mae    <- min(lasso_cv_mae$cvm)
+```
+
+```{r}
+#| echo: FALSE
+
+# LASSO Coefficients Table
+lasso_coef_table <- coef(lasso_cv, s = "lambda.min") %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename(Coefficient = 2) %>%
+  filter(Variable != "(Intercept)") %>%
+  mutate(
+    Coefficient = round(Coefficient, 4),
+    Status = if_else(Coefficient == 0, "Zeroed Out", "Retained")
+  ) %>%
+  arrange(desc(abs(Coefficient)))
+
+kable(lasso_coef_table,
+      caption = paste0("LASSO Coefficients (lambda = ",
+                       round(lasso_lambda, 4), ")"))
+```
+
+With an optimal lamdba of $0.004$, LASSO zeroed out *positionGK* and *xg_assist_per90*. The first variable makes sense as goalkeepers do not contribute to scoring goals but the creativity metric being zeroed out is a surprise. *np_xg_per_shot* is retained with the largest magnitude coefficient ($0.2735$). The two position dummies (*positionMF*, *positionDF*) are retained and have negative coefficients, reinforcing that non-forward positions tend to underperform their xG. The remaining retained variables (*minutes_90s*, *age_years*, *shots*, *average_shot_distance*) all have very small coefficients, suggesting their contribution is minimal but non-negligible after regularization.
+
+```{r}
+#| echo: FALSE
+
+# Comparison table of performance
+comparison <- tibble(
+  Model            = c("OLS", "Ridge", "LASSO"),
+  `CV RMSE`        = round(c(ols_rmse, ridge_rmse, lasso_rmse), 4),
+  `CV MAE`         = round(c(ols_mae, ridge_mae, lasso_mae), 4),
+  `Optimal Lambda` = c(NA, round(ridge_lambda, 4), round(lasso_lambda, 4))
+)
+
+kable(comparison, caption = "10-Fold CV Performance Across Models")
+```
+
+Ridge regression receives the lowest CV RMSE and CV MAE, making it the best performing model on both metrics. However, the difference across all three models are very small indicating that regularization provides little benefit over the standard OLS. This likely reflects the fact that our predictors are already weakly correlated with *xg_diff* so there is little to gain from shrinkage. Overall, while Ridge edges out the other methods, all three models suggest that the selected predictors have limited power in explaining scoring efficiency, and future modeling could benefit from additional data sources.
+
+## Results
+
+The exploratory analysis shows that most players had an \`xg_diff\` close to zero, meaning most players scored near their expected goals. However, a small number of players strongly overperformed or underperformed. Position appeared to matter more than age or raw shot volume. Forwards had the widest spread in scoring efficiency and included most of the top overperformers, while midfielders and defenders tended to cluster closer to zero or slightly below zero.\
+\
+The correlation matrix showed that \`goals_per_shot\` had the strongest correlation with \`xg_diff\`, followed by \`shots_on_target\`. However, these variables were excluded from the final models because they are closely related to the outcome or highly correlated with other shooting variables. Other predictors, including age, minutes, shots, and average shot distance, had weak relationships with scoring efficiency.\
+\
+The OLS model had an \\(R\^2\\) of 0.048, meaning the model explained only about 4.8% of the variation in scoring efficiency. This suggests that the selected player-level variables have limited explanatory power. Ridge regression had the best cross-validated RMSE and MAE, but the difference between OLS, Ridge, and LASSO was very small. Overall, the modeling results suggest that scoring efficiency in a short tournament is difficult to predict using only basic player and shooting statistics.
+
+## Discussion
+
+Our analysis suggests that scoring efficiency in the 2022 FIFA World Cup is difficult to predict using basic player-level and shooting statistics alone. Although some variables are related to overperformance, most predictors have weak relationships with \`xg_diff\`, which supports the idea that finishing above or below expected goals is highly noisy in a short tournament setting. The distribution of \`xg_diff\` shows that most players finished close to their expected goals, while only a small number of players strongly overperformed or underperformed.\
+\
+Position appears to be one of the most meaningful factors in our analysis. Forwards had the widest spread in scoring efficiency and were more likely to appear among the strongest overperformers. This makes sense because forwards take more shots and are usually the primary goal-scoring players on their teams. Midfielders and defenders tended to cluster closer to zero or slightly below zero, suggesting that they generally scored closer to or below expectation. Goalkeepers were not meaningful for this research question because they rarely produce scoring opportunities, so excluding them from the modeling stage was appropriate.\
+\
+The relationship between age and scoring efficiency was weak. Players of different ages appeared on both sides of the overperformance line, which suggests that age alone is not a strong predictor of whether a player will score more than expected. Similarly, total shot volume was not strongly associated with overperforming xG. Some players with many shots still underperformed, while some of the largest overperformers came from low or medium shot volume. This suggests that simply taking more shots does not guarantee better finishing efficiency.\
+\
+The correlation matrix gave more useful insight into which variables were most connected to scoring efficiency. \`goals_per_shot\` had the strongest positive correlation with \`xg_diff\`, which is intuitive because players who score on a higher percentage of their shots are more likely to outperform their xG. \`shots_on_target\` was also positively related to \`xg_diff\`, suggesting that shot accuracy matters more than raw shot quantity. However, we excluded \`goals_per_shot\` and \`shots_on_target\` from the final models because they are highly related to the outcome or strongly correlated with other shooting variables, which could create multicollinearity or make the model less interpretable.\
+\
+The modeling results reinforce the main finding from the EDA: scoring efficiency is difficult to explain with the variables available in this dataset. The OLS model had an \\(R\^2\\) of only 0.048, meaning the predictors explained about 4.8% of the variation in \`xg_diff\`. Ridge regression performed slightly better than OLS and LASSO based on cross-validated RMSE and MAE, but the differences between the three models were very small. This indicates that regularization did not substantially improve predictive performance. LASSO retained variables such as \`npxg_per_shot\`, position, minutes, age, shots, and average shot distance, but most coefficients were small, again suggesting limited explanatory power.\
+\
+One important limitation of this project is that the World Cup is a small and short tournament. Many players have limited minutes and few shots, so one goal or one missed chance can greatly change a player’s \`xg_diff\`. This makes scoring efficiency much more unstable than it would be across a full club season. Another limitation is that xG models are not perfect. They estimate chance quality based on available information, but they may not fully capture defensive pressure, goalkeeper positioning, shot technique, tactical context, or game state. Also, our dataset is player-level rather than shot-level, so we lose detailed information about each individual chance.\
+\
+Future work could improve this analysis by using shot-level data instead of aggregated player-level statistics. Shot-level data would allow us to include variables such as shot angle, body part used, defensive pressure, pass type, match situation, and goalkeeper position. It would also be useful to compare World Cup performance with players’ club performance across a full season to see whether overperformance in the tournament reflects true finishing skill or short-term randomness. Finally, adding team-level variables such as possession, attacking style, and strength of opponents could help explain why some players receive higher-quality chances than others.\
+\
+Overall, our results suggest that scoring efficiency is not easily predicted from simple player statistics. Position and shooting quality provide some insight, but most of the variation in \`xg_diff\` appears to come from randomness, small sample size, and contextual factors not captured in the dataset. This supports the idea that xG overperformance in a short tournament should be interpreted carefully rather than treated as a stable measure of finishing ability.
+
+## Codebook
+
+The codebook can be found in our GitHub in our data/ folder: <https://github.com/zibojerryxu/Math-244-final-project-Team-GG/blob/main/data/dataset_readme.md>

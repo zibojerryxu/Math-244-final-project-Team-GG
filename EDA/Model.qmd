@@ -1,0 +1,212 @@
+---
+title: "FIFA World Cup 2022 Scoring Efficiency Analysis - Model"
+format: pdf
+author: "Gaku Aihara and Jerry Xu"
+editor: visual
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+
+```{r load library}
+#| echo: FALSE
+#| include: FALSE
+
+library(tidyverse)
+library(janitor)
+library(readr)
+library(glmnet)
+library(knitr)
+library(caret)
+library(broom)
+
+```
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+# load data
+df1 <- read_csv(
+  "player_stats.csv",
+  show_col_types = FALSE
+) %>%
+  clean_names()
+
+df2 <- read_csv(
+  "player_shooting.csv",
+  show_col_types = FALSE
+) %>%
+  clean_names()
+
+# rebuild df 
+df <- df1%>%
+  mutate(
+    xg_diff = goals - xg,
+    efficiency_per90 = goals_per90 - xg_per90,
+    age_years = as.integer(str_extract(age, "^[0-9]+")),
+    is_overperformer = if_else(xg_diff > 0, 1L, 0L),
+    position = factor(position, levels = c("FW", "MF", "DF", "GK"))
+  ) %>%
+  filter(minutes_90s >= 1) %>%
+  drop_na(xg, goals, position, age_years)
+
+shooting <- df2%>%
+  select(player, team, shots, shots_on_target,
+         average_shot_distance, goals_per_shot, npxg_per_shot)
+
+df <- df %>%
+  left_join(shooting, by = c("player", "team"))
+```
+
+## Modeling
+We model *xg_diff* (scoring efficiency computed as goals - expected goals) as a function of player age, position, playing time, playmaking context, shot volume, shot distance, and shot quality. We excluded goalkeepers from all models as they are not meaningful for scoring analysis. We also exclude *goals_per_shot* and *shots_on_target* from predictors due to the high correlation we found from the correlation matrix. All three models (OLS, Ridge, LASSO) are evaluated using 10-fold cross-validation with both RMSE and MAE as performance metrics.
+
+Our model is specified as:
+
+$$xg\_diff = \beta_0 + \beta_1(age\_years) + \beta_2(position) + \beta_3(minutes\_90s) + \\\beta_4(xg\_assist\_per90) + \beta_5(shots) + \beta_6(average\_shot\_distance) + \\\beta_7(npxg\_per\_shot) + \varepsilon$$
+
+### OLS
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+# Prepare modeling dataset: exclude GK, drop rows with NA in any predictor
+model_df <- df %>%
+  filter(position != "GK") %>%
+  drop_na(xg_diff, age_years, position, minutes_90s,
+          xg_assist_per90, shots, average_shot_distance, npxg_per_shot)
+
+# Model matrix for Ridge and LASSO (no intercept column)
+X <- model.matrix(
+  xg_diff ~ age_years + position + minutes_90s +
+    xg_assist_per90 + shots + average_shot_distance + npxg_per_shot,
+  data = model_df
+)[, -1]
+
+y <- model_df$xg_diff
+```
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+# Fit OLS and get 10-fold CV RMSE manually
+ols_model <- lm(
+  xg_diff ~ age_years + position + minutes_90s +
+    xg_assist_per90 + shots + average_shot_distance + npxg_per_shot,
+  data = model_df
+)
+
+# 10-fold CV for OLS (RMSE and MAE)
+set.seed(67)
+folds <- sample(rep(1:10, length.out = nrow(model_df)))
+
+ols_cv_results <- sapply(1:10, function(k) {
+  train_data <- model_df[folds != k, ]
+  test_data  <- model_df[folds == k, ]
+  fit  <- lm(xg_diff ~ age_years + position + minutes_90s +
+               xg_assist_per90 + shots + average_shot_distance + npxg_per_shot,
+             data = train_data)
+  pred <- predict(fit, newdata = test_data)
+  c(mse = mean((test_data$xg_diff - pred)^2),
+    mae = mean(abs(test_data$xg_diff - pred)))
+})
+
+ols_rmse <- sqrt(mean(ols_cv_results["mse", ]))
+ols_mae  <- mean(ols_cv_results["mae", ])
+```
+
+```{r}
+#| echo: FALSE
+
+# OLS Summary
+ols_summary <- summary(ols_model)
+
+tidy(ols_model) %>%
+  mutate(across(where(is.numeric), ~round(., 4))) %>%
+  kable(caption = paste0("OLS Coefficients (R\U00B2 = ",
+                         round(ols_summary$r.squared, 3), ")"))
+```
+The OLS model returns an $R^2$ of $0.048$, meaning our predictors explain about $4.8%$ of the variance in *xg_diff*. This is extremely low but not too surprising as it shows scoring efficiency is very noisy and difficult to predict from player-level statistics alone. *positionMF* was our only statistically significant coefficient indicating that midfielders on average score approximately 0.17 goals less than their xG relative to forwards with all other variables held constant. *positionDF* is also marginally significant. 
+
+### Ridge
+Ridge regression applies L2 regularization which penalizes the sum of squares coefficients to shrink all predictors towards zero without eliminating any. The optimal lambda selected by cross-validation is 0.3588 indicating moderate regularization strength. 
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+set.seed(67)
+# RMSE for Ridge
+ridge_cv     <- cv.glmnet(X, y, alpha = 0, nfolds = 10)
+ridge_lambda <- ridge_cv$lambda.min
+ridge_rmse   <- sqrt(min(ridge_cv$cvm))
+
+# MAE for Ridge
+set.seed(67)
+ridge_cv_mae <- cv.glmnet(X, y, alpha = 0, nfolds = 10, type.measure = "mae")
+ridge_mae    <- min(ridge_cv_mae$cvm)
+```
+
+### LASSO
+LASSO regression applies L1 regularization which performs automatic variable selection by shrinking selected coefficients to zero. 
+
+```{r}
+#| echo: FALSE
+#| include: FALSE
+
+set.seed(67)
+# RMSE for LASSO
+lasso_cv     <- cv.glmnet(X, y, alpha = 1, nfolds = 10)
+lasso_lambda <- lasso_cv$lambda.min
+lasso_rmse   <- sqrt(min(lasso_cv$cvm))
+
+# MAE for LASSO
+set.seed(67)
+lasso_cv_mae <- cv.glmnet(X, y, alpha = 1, nfolds = 10, type.measure = "mae")
+lasso_mae    <- min(lasso_cv_mae$cvm)
+```
+
+```{r}
+#| echo: FALSE
+
+# LASSO Coefficients Table
+lasso_coef_table <- coef(lasso_cv, s = "lambda.min") %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  rownames_to_column("Variable") %>%
+  rename(Coefficient = 2) %>%
+  filter(Variable != "(Intercept)") %>%
+  mutate(
+    Coefficient = round(Coefficient, 4),
+    Status = if_else(Coefficient == 0, "Zeroed Out", "Retained")
+  ) %>%
+  arrange(desc(abs(Coefficient)))
+
+kable(lasso_coef_table,
+      caption = paste0("LASSO Coefficients (lambda = ",
+                       round(lasso_lambda, 4), ")"))
+
+```
+With an optimal lamdba of $0.004$, LASSO zeroed out *positionGK* and *xg_assist_per90*. The first variable makes sense as goalkeepers do not contribute to scoring goals but the creativity metric being zeroed out is a surprise. *np_xg_per_shot* is retained with the largest magnitude coefficient ($0.2735$). The two position dummies (*positionMF*, *positionDF*) are retained and have negative coefficients, reinforcing that non-forward positions tend to underperform their xG. The remaining retained variables (*minutes_90s*, *age_years*, *shots*, *average_shot_distance*) all have very small coefficients, suggesting their contribution is minimal but non-negligible after regularization. 
+
+
+```{r}
+#| echo: FALSE
+
+# Comparison table of performance
+comparison <- tibble(
+  Model            = c("OLS", "Ridge", "LASSO"),
+  `CV RMSE`        = round(c(ols_rmse, ridge_rmse, lasso_rmse), 4),
+  `CV MAE`         = round(c(ols_mae, ridge_mae, lasso_mae), 4),
+  `Optimal Lambda` = c(NA, round(ridge_lambda, 4), round(lasso_lambda, 4))
+)
+
+kable(comparison, caption = "10-Fold CV Performance Across Models")
+```
+Ridge regression receives the lowest CV RMSE and CV MAE, making it the best performing model on both metrics. However, the difference across all three models are very small indicating that regularization provides little benefit over the standard OLS. This likely reflects the fact that our predictors are already weakly correlated with *xg_diff* so there is little to gain from shrinkage. Overall, while Ridge edges out the other methods, all three models suggest that the selected predictors have limited power in explaining scoring efficiency, and future modeling could benefit from additional data sources. 
+
